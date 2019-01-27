@@ -6,7 +6,7 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 
 ---
 
-|            New Additions             |         Existing Additions    |       Testing                       |
+|            New Additions            |         Existing Additions    |       Testing                       |
 |              :---:                  |              :---:            |        :---:                        |
 | CO2 Unlimited                       |   CO2 Limited Value           | ^Transmittance (%)                  |
 | CO2 as Raw                          | Temperature as Single Integer |  Zero Calibration (with adjustment) |
