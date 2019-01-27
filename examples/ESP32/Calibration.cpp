@@ -54,7 +54,7 @@ void setup()
 
     */
 
-    myMHZ19.setSpan(2000);           // Set Span 2000 (enter value between brackets, strongly advise 2000)
+    myMHZ19.setSpan(2000);  
 
     /*            ###autoCalibration(false)###  
        Basic:
@@ -72,7 +72,7 @@ void setup()
 
 void loop()
 {
-    if (millis() - getDataTimer >= 2000)     // Timer (equivilant toa  non-blocking delay())
+    if (millis() - getDataTimer >= 2000)     // Check if interval has elapsed (non-blocking delay() equivilant)
     {
         int CO2;
         CO2 = myMHZ19.getCO2();        
@@ -81,7 +81,7 @@ void loop()
         Serial.println(CO2);
 
         float Temp;                           // Buffer for temperature
-        Temp = myMHZ19.getTemperature();      // Request Temperature (as Celsius), new request = false;
+        Temp = myMHZ19.getTemperature();      // Request Temperature (as Celsius)
 
         Serial.print("Temperature (C): ");
         Serial.println(Temp);

@@ -14,15 +14,15 @@
 
 MHZ19 myMHZ19(RX_PIN, TX_PIN);
 
-unsigned long getDataTimer = 0;      // Variable to store timer interval
+unsigned long getDataTimer = 0;             // Variable to store timer interval
 
-void verifyRange(int range);         // Forward Decleration for Non-IDE Environment
+void verifyRange(int range);                // Forward Decleration for Non-IDE Environment
 
 void setup()
 {
     Serial.begin(9600);
 
-    myMHZ19.begin();                 // Library Begin (this is essential)
+    myMHZ19.begin();                        // Library Begin (this is essential)
 
     /*            ### setRange(value)###  
        Basic:
@@ -52,7 +52,7 @@ void setup()
 
     */
 
-    myMHZ19.setSpan(2000);           // Set Span 2000 (enter value between brackets, strongly advise 2000)
+    myMHZ19.setSpan(2000); 
 
     /*            ###autoCalibration(false)###  
        Basic:
@@ -79,7 +79,7 @@ void loop()
         Serial.println(CO2);
 
         float Temp;                           // Buffer for temperature
-        Temp = myMHZ19.getTemperature();      // Request Temperature (as Celsius), new request = false;
+        Temp = myMHZ19.getTemperature();      // Request Temperature (as Celsius)
 
         Serial.print("Temperature (C): ");
         Serial.println(Temp);
