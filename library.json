@@ -1,5 +1,5 @@
   "name": "MH-Z19",
-  "description": "Arduino library with new commands for MH-Z19 series CO2 senors (raw CO2, 2 decimal temperature and others)",
+  "description": "Library for MH-Z19 series CO2 senors which brings new & improved commands",
   "keywords": "MH-Z19, MHZ19, MHZ19B, MH-Z19B, CO2, UART, ANALOG",
   "repository":
   {
@@ -16,5 +16,5 @@
   ],
   "version": "1.1.0",
   "frameworks": "arduino",
-  "platforms": "*"
+  "platforms": "Atmel AVR, Espressif 32"
 }
