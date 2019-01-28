@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.2.0
+  Version: 1.2.2
 
   License: GPL-3.0
 
@@ -24,11 +24,10 @@
 
 #ifdef ARDUINO_AVR_UNO
 #include <SoftwareSerial.h>
-#define BOARD "Uno"
 #endif
 
 #ifdef ESP32
-#define BOARD "ESP32"
+#include "esp32-hal-log.h"
 #endif
 
 /* time out delay */
@@ -55,34 +54,33 @@ enum ERRORCODE
 /* alias from command type */
 typedef enum COMMAND_TYPE
 {
-	RECOVER = 0,	   // 0 Recovery Reset
-	ABC = 1,           // 1 ABC Mode ON/OFF
-	RAWCO2 = 2,        // 2 Raw CO2
-	TEMPUNLIM = 3,     // 3 Temp float, CO2 Unlimited
-	TEMPLIM = 4,	   // 4 Temp integer, CO2 limited
-	ZEROCAL = 5,	   // 5 Zero Calibration
-	SPANCAL = 6,	   // 6 Span Calibration
-	RANGE = 7,         // 7 Range
-	GETRANGE = 8,	   // 8 Get Range
-	GETCALPPM = 9,     // 9 Get Background CO2
-	GETFIRMWARE = 10,  // 10 Get Firmware Version
-	GETLASTRESP = 11,  // 11 Get Last Response
-	GETEMPCAL = 12     // 12 Get Temp Calibration
+	RECOVER = 0,	  // 0 Recovery Reset
+	ABC = 1,		  // 1 ABC Mode ON/OFF
+	RAWCO2 = 2,		  // 2 Raw CO2
+	TEMPUNLIM = 3,	  // 3 Temp float, CO2 Unlimited
+	TEMPLIM = 4,	  // 4 Temp integer, CO2 limited
+	ZEROCAL = 5,	  // 5 Zero Calibration
+	SPANCAL = 6,	  // 6 Span Calibration
+	RANGE = 7,		  // 7 Range
+	GETRANGE = 8,	  // 8 Get Range
+	GETCALPPM = 9,    // 9 Get Background CO2
+	GETFIRMWARE = 10, // 10 Get Firmware Version
+	GETLASTRESP = 11, // 11 Get Last Response
+	GETEMPCAL = 12    // 12 Get Temp Calibration
 } Command_Type;
 
 class MHZ19
 {
   public:
-  
-  /*###########################-Variables-##########################*/  
-	
+	/*###########################-Variables-##########################*/
+
 	/* Holds last recieved errorcode from recieveResponse() */
 	byte errorCode;
 
 	/* for keeping track of the ABC run interval */
 	unsigned long ABCRepeatTimer;
 
-  /*#####################-Initiation Functions-#####################*/
+	/*#####################-Initiation Functions-#####################*/
 
 	/* constructor */
 	MHZ19(byte rx, byte tx, byte s = 1); //  Argument 3 not required for non-ESP32 devices
@@ -90,7 +88,7 @@ class MHZ19
 	/* essential begin */
 	void begin();
 
-  /*########################-Set Functions-##########################*/
+	/*########################-Set Functions-##########################*/
 
 	/* Sets Range to desired value*/
 	void setRange(int range = 2000);
@@ -98,7 +96,7 @@ class MHZ19
 	/* Sets Span to desired value below 10,000*/
 	void setSpan(int span = 2000);
 
-  /*########################-Get Functions-##########################*/
+	/*########################-Get Functions-##########################*/
 
 	/* request CO2 values, 2 types of CO2 can be returned, isLimted = true (command 134) and is Limited = false (command 133) */
 	int getCO2(bool force = true, bool isunLimited = true);
@@ -106,7 +104,7 @@ class MHZ19
 	/* returns the "raw" CO2 value of unknown units */
 	float getCO2Raw(bool force = true);
 
-    /* returns Raw CO2 value as a % of transmittance */ //<--- needs work to understand
+	/* returns Raw CO2 value as a % of transmittance */ //<--- needs work to understand
 	float getTransmittance(bool force = true);
 
 	/*  returns temperature to 0.06C, if isFloat = false, command 134 is instead used */
@@ -129,11 +127,11 @@ class MHZ19
 
 	/* returns temperature using command 163 (Note: this library deducts -2 as it is incorrect and is adjusted by the code here) */
 	byte getTempAdjustment();
-    
+
 	/* returns last recorded response from device using command 162 */
 	byte getLastResponse(byte bytenum);
- 
-  /*######################-Utility Functions-########################*/
+
+	/*######################-Utility Functions-########################*/
 
 	/* ensure communication is working (included in begin())*/
 	void stablise();
@@ -146,16 +144,15 @@ class MHZ19
 
 	/* requests a reset, this also rests Zero and Span */
 	void recoveryReset();
-     
+
 	/* use to show communication between MHZ19 and  Device */
 	void printCommunication(bool isPrintComm = true, bool isDec = true);
 
   private:
-	
-  /*###########################-Variables-##########################*/
+	/*###########################-Variables-##########################*/
 
 	/* constructor pins */
-	byte _rx, _tx, _s; 
+	byte _rx, _tx, _s;
 
 	/* management of when sensor was last called */
 	unsigned long lastcalledtimer = 0;
@@ -173,20 +170,20 @@ class MHZ19
 	/* holders for communication */
 	byte constructedCommand[9];
 
-	/* Incoming Data Holders */  // <---- imnportant to be aware of if utalising force mode
-	byte responseTEMPUNLIM[9];   // Holds command 133 response values "temperature unlimited"
-	byte responseTEMPLIM[9];     // Holds command 134 response values "temperature limited"
-	byte responseRAW[9];         // Holds command 132 response values "CO2 Raw"
-	byte responseSTAT[9];        // Holds other command response values such as range, background CO2 etc
+	/* Incoming Data Holders */ // <---- imnportant to be aware of if utalising force mode
+	byte responseTEMPUNLIM[9];  // Holds command 133 response values "temperature unlimited"
+	byte responseTEMPLIM[9];	// Holds command 134 response values "temperature limited"
+	byte responseRAW[9];		// Holds command 132 response values "CO2 Raw"
+	byte responseSTAT[9];		// Holds other command response values such as range, background CO2 etc
 
-  /*######################-Inernal Functions-########################*/
+	/*######################-Inernal Functions-########################*/
 
 	/* Coordinates  sending, constructing and recieving commands */
 	void provisioning(Command_Type commandtype, int inData = 0);
 
 	/* Constructs commands using command array and entered values */
 	void constructCommand(Command_Type commandtype, int inData = 0);
-    
+
 	/* generates a checksum for sending and verifying incoming data */
 	byte checkSum(byte inBytes[]);
 
@@ -207,9 +204,8 @@ class MHZ19
 
 	/* converts integers to bytes according to /256 and %256 */
 	void int2bytes(int inInt, byte *high, byte *low);
-	
+
 	/* converts bytes to integers according to *256 and + value */
 	uint16_t bytes2int(byte high, byte low);
-	
 };
 #endif

@@ -1,11 +1,11 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.2.0
+  Version: 1.2.2
 
   License: GPL-3.0
 
-  This is a library for the MHZ19 CO2 Sensor
+  This is a library for the MHZ19 CO2 Sensor 
 
   The sensors uses UART to communicate and sends
   9 bytes in a modbus-like sequence. The sensor
@@ -48,7 +48,13 @@ void MHZ19::begin()
 
     /* check if successful */
     if (errorCode != RESULT_OK)
-        Serial.println("!ERROR Failed to establish connection");
+    {
+        #ifdef ESP32
+        ESP_LOGE(TAG_MHZ19, "Initial communication errorCode recieved");
+        #else
+        Serial.println("!ERROR: Initial communication errorCode recieved");
+        #endif 
+    }
 }
 
 /*########################-Set Functions-##########################*/
@@ -57,7 +63,12 @@ void MHZ19::setRange(int range)
 {
     if (range > 65000)
     {
-        Serial.println("!ERROR, Invalid Range value (0 - 65000)");
+        #ifdef ESP32
+        ESP_LOGE(TAG_MHZ19, "Invalid Range value (0 - 65000)");
+        #else
+        Serial.println("!ERROR: Invalid Range value (0 - 65000)");
+        #endif 
+
         return;
     }
 
@@ -67,12 +78,13 @@ void MHZ19::setRange(int range)
 
 void MHZ19::setSpan(int span)
 {
-    if (isZeroLast == false)
-        Serial.println("Warning, Zero Calibration should be sent before Span");
-
     if (span > 10000)
     {
-        Serial.println("!ERROR, Invalid Span value (0 - 10000)");
+        #ifdef ESP32
+        ESP_LOGE(TAG_MHZ19, "Invalid Span value (0 - 10000)");   
+        #else
+        Serial.println("!ERROR: Invalid Span value (0 - 10000)");
+        #endif 
     }
     else
     {
@@ -277,7 +289,12 @@ void MHZ19::stablise()
         timeout++;
         if (timeout >= 10)
         {
-            Serial.println("!ERROR, failed to recieve OK (1)");
+            #ifdef ESP32
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor. Failed to stablise");   
+            #else
+            Serial.println("!ERROR: Failed to verify connection(1) to sensor. Failed to stablise");
+            #endif   
+
             return;
         }
     }
@@ -293,7 +310,12 @@ void MHZ19::stablise()
         timeout++;
         if (timeout >= 10)
         {
-            Serial.println("!ERROR, failed to recieve OK (2)");
+            #ifdef ESP32
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor. Failed to stablise");   
+            #else
+            Serial.println("!ERROR: Failed to verify connection(2) to sensor. Failed to stablise");
+            #endif
+            
             return;
         }
     }
@@ -303,7 +325,13 @@ void MHZ19::stablise()
     {
         if (responseTEMPUNLIM[i] != responseSTAT[i])
         {
-            Serial.println("!ERROR, callback failed");
+            #ifdef ESP32
+            ESP_LOGE(TAG_MHZ19, "Last response was not found, call back failed. Failed to stablise");   
+            #else
+            Serial.println("!ERROR: Last response was not found, call back failed. Failed to stablise");
+            #endif
+
+            return;
         }
     }
     return;
@@ -545,7 +573,7 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
         TimeOut++;
         if (TimeOut >= 50)
         {
-            Serial.println("!Warning, Timed Out!");
+            Serial.println("!Warning: Timed out waiting for response");  
             errorCode = RESULT_ERR_TIMEOUT;
             return RESULT_ERR_TIMEOUT;
         }
@@ -567,7 +595,7 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
         TimeOut++;
         if (TimeOut >= 50)
         {
-            Serial.println("!Warning, Timed Out!");
+            ESP_LOGW(TAG_MHZ19, "Timed out waiting for response");            
             errorCode = RESULT_ERR_TIMEOUT;
             return RESULT_ERR_TIMEOUT;
         }
