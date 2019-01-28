@@ -24,12 +24,7 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 ### "Usage"
 ---
 
-* UNO: The library should be found in the IDE library manager. Alternatively, simply clone this library to your working library folder and include "MHZ19.h" in your main sketch. The additional MHZ19COM file included is for switching in the correct code during compiling. This is automatically included with "MHZ19.h".
-
-* ESP32: There are two choices here. 
-    - The "standard version" which is used in the same way as the Uno (and available in the IDE library manager). Clone this library to your working library folder and include "MHZ19B.h" in your main sketch. 
-
-    - The "ESP_LOG MH-Z19" found in "extras", which provides details based upon the core debug level (mostly my purpose). Examples will work with both versions, however for the "ESP_LOG MH-Z19" content must be transfered to a working library directory.
+* UNO & ESP32: The library can be found in the IDE/IO library manager. Alternatively, simply clone this library to your working library folder and include "MHZ19.h" in your main sketch.
 
 If you would like support for an additional device not yet included, please contact me.
 
