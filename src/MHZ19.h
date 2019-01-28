@@ -54,19 +54,19 @@ enum ERRORCODE
 /* alias from command type */
 typedef enum COMMAND_TYPE
 {
-	RECOVER = 0,	  // 0 Recovery Reset
-	ABC = 1,		  // 1 ABC Mode ON/OFF
-	RAWCO2 = 2,		  // 2 Raw CO2
-	TEMPUNLIM = 3,	  // 3 Temp float, CO2 Unlimited
-	TEMPLIM = 4,	  // 4 Temp integer, CO2 limited
-	ZEROCAL = 5,	  // 5 Zero Calibration
-	SPANCAL = 6,	  // 6 Span Calibration
-	RANGE = 7,		  // 7 Range
-	GETRANGE = 8,	  // 8 Get Range
-	GETCALPPM = 9,    // 9 Get Background CO2
-	GETFIRMWARE = 10, // 10 Get Firmware Version
-	GETLASTRESP = 11, // 11 Get Last Response
-	GETEMPCAL = 12    // 12 Get Temp Calibration
+	RECOVER = 0,		// 0 Recovery Reset
+	ABC = 1,			// 1 ABC Mode ON/OFF
+	RAWCO2 = 2,			// 2 Raw CO2
+	TEMPUNLIM = 3,		// 3 Temp float, CO2 Unlimited
+	TEMPLIM = 4,		// 4 Temp integer, CO2 limited
+	ZEROCAL = 5,		// 5 Zero Calibration
+	SPANCAL = 6,		// 6 Span Calibration
+	RANGE = 7,			// 7 Range
+	GETRANGE = 8,		// 8 Get Range
+	GETCALPPM = 9,		// 9 Get Background CO2
+	GETFIRMWARE = 10,	// 10 Get Firmware Version
+	GETLASTRESP = 11,	// 11 Get Last Response
+	GETEMPCAL = 12 		// 12 Get Temp Calibration
 } Command_Type;
 
 class MHZ19
@@ -83,7 +83,7 @@ class MHZ19
 	/*#####################-Initiation Functions-#####################*/
 
 	/* constructor */
-	MHZ19(byte rx, byte tx, byte s = 1); //  Argument 3 not required for non-ESP32 devices
+	MHZ19(byte rx, byte tx, byte s = 1); //  Argument 3 not used for non-ESP32 devices
 
 	/* essential begin */
 	void begin();
@@ -170,11 +170,11 @@ class MHZ19
 	/* holders for communication */
 	byte constructedCommand[9];
 
-	/* Incoming Data Holders */ // <---- imnportant to be aware of if utalising force mode
-	byte responseTEMPUNLIM[9];  // Holds command 133 response values "temperature unlimited"
-	byte responseTEMPLIM[9];	// Holds command 134 response values "temperature limited"
-	byte responseRAW[9];		// Holds command 132 response values "CO2 Raw"
-	byte responseSTAT[9];		// Holds other command response values such as range, background CO2 etc
+	/* Incoming Data Holders */		// Important to be aware of if utalising force arguments
+	byte responseTEMPUNLIM[9];		// Holds command 133 response values "temperature unlimited"
+	byte responseTEMPLIM[9];		// Holds command 134 response values "temperature limited"
+	byte responseRAW[9];			// Holds command 132 response values "CO2 Raw"
+	byte responseSTAT[9];			// Holds other command response values such as range, background CO2 etc
 
 	/*######################-Inernal Functions-########################*/
 
