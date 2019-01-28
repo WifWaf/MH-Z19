@@ -478,6 +478,10 @@ byte MHZ19::checkSum(byte inBytes[])
 
 void MHZ19::write(byte toSend[])
 {
+    /* for print communications */
+    if (printcomm == true)
+        printstream(toSend, true, errorCode);
+
 #ifdef ARDUINO_AVR_UNO
     /* open communications */
     SoftwareSerial mySerial(_rx, _tx);
@@ -494,10 +498,6 @@ void MHZ19::write(byte toSend[])
     /* open communications */
     HardwareSerial hserial(_s);
     hserial.begin(BAUDRATE, SCONFIG, _rx, _tx);
-
-    /* print for debug */
-    if (printcomm == true)
-        printstream(toSend, true, errorCode);
 
     /* transfer to buffer */
     hserial.write(toSend, 9);
@@ -556,7 +556,7 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
 #endif
 
 #ifdef ESP32
-     /* open communications */
+    /* open communications */
     HardwareSerial hserial(_s);
     hserial.begin(BAUDRATE, SCONFIG, _rx, _tx);
 
@@ -574,8 +574,8 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
     }
 
     /* response recieved, read buffer */
-    hserial.readBytes(inBytes, 9);   
- #endif 
+    hserial.readBytes(inBytes, 9);
+#endif
 
     if (errorCode == RESULT_ERR_TIMEOUT)
         return errorCode;
