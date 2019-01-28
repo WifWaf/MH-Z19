@@ -1,5 +1,9 @@
 /*************************************************** 
-  Written by: Jonathan Dempsey JDWifWaf@gmail.com
+  Author: Jonathan Dempsey JDWifWaf@gmail.com
+  
+  Version: 1.2.0
+
+  License: GPL-3.0
 
   This is a library for the MHZ19 CO2 Sensor
 
@@ -353,7 +357,7 @@ void MHZ19::calibrateZero(int rangeCal)
 
         provisioning(ZEROCAL, result);
     }
-    
+
     else
         provisioning(ZEROCAL);
 
@@ -474,12 +478,33 @@ byte MHZ19::checkSum(byte inBytes[])
 
 void MHZ19::write(byte toSend[])
 {
+#ifdef ARDUINO_AVR_UNO
+    /* open communications */
+    SoftwareSerial mySerial(_rx, _tx);
+    mySerial.begin(BAUDRATE);
+
+    /* transfer to buffer */
+    mySerial.write(toSend, 9);
+
+    /* send */
+    mySerial.flush();
+#endif
+
+#ifdef ESP32
+    /* open communications */
+    HardwareSerial hserial(_s);
+    hserial.begin(BAUDRATE, SCONFIG, _rx, _tx);
+
     /* print for debug */
     if (printcomm == true)
         printstream(toSend, true, errorCode);
 
-    COMMHZ19 myCOMMHZ19(_rx, _tx, _s);
-    myCOMMHZ19.comWrite(toSend);
+    /* transfer to buffer */
+    hserial.write(toSend, 9);
+
+    /* send */
+    hserial.flush();
+#endif
 }
 
 void MHZ19::handleResponse(Command_Type commandtype)
@@ -499,8 +524,58 @@ void MHZ19::handleResponse(Command_Type commandtype)
 
 byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
 {
-    COMMHZ19 myCOMMHZ19(_rx, _tx, _s);
-    errorCode = myCOMMHZ19.comResponse(inBytes);
+    /* loop escape */
+    byte TimeOut = 0;
+
+    /* prepare memory array with unsigned chars of 0 */
+    memset(inBytes, 0, 9);
+
+    /* prepare errorCode */
+    errorCode = RESULT_ERR_NULL;
+
+#ifdef ARDUINO_AVR_UNO
+    /* open communications */
+    SoftwareSerial mySerial(_rx, _tx);
+    mySerial.begin(BAUDRATE);
+
+    /* wait for response, allow for defined time before exit */
+    while (mySerial.available() <= 0)
+    {
+        delay(WAIT_READ_DELAY);
+        TimeOut++;
+        if (TimeOut >= 50)
+        {
+            Serial.println("!Warning, Timed Out!");
+            errorCode = RESULT_ERR_TIMEOUT;
+            return RESULT_ERR_TIMEOUT;
+        }
+    }
+
+    /* response recieved, read buffer */
+    mySerial.readBytes(inBytes, 9);
+#endif
+
+#ifdef ESP32
+     /* open communications */
+    HardwareSerial hserial(_s);
+    hserial.begin(BAUDRATE, SCONFIG, _rx, _tx);
+
+    /* wait for response, allow for defined time before exit */
+    while (hserial.available() <= 0)
+    {
+        delay(WAIT_READ_DELAY);
+        TimeOut++;
+        if (TimeOut >= 50)
+        {
+            Serial.println("!Warning, Timed Out!");
+            errorCode = RESULT_ERR_TIMEOUT;
+            return RESULT_ERR_TIMEOUT;
+        }
+    }
+
+    /* response recieved, read buffer */
+    hserial.readBytes(inBytes, 9);   
+ #endif 
 
     if (errorCode == RESULT_ERR_TIMEOUT)
         return errorCode;

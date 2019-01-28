@@ -1,5 +1,9 @@
 /*************************************************** 
-  Written by: Jonathan Dempsey JDWifWaf@gmail.com
+  Author: Jonathan Dempsey JDWifWaf@gmail.com
+  
+  Version: 1.2.0
+
+  License: GPL-3.0
 
   This is a library for the MHZ19 CO2 Sensor
 
@@ -17,15 +21,22 @@
 #define MHZ19_H
 
 #include <Arduino.h>
-#include "MHZ19COM.h" 
 
 #ifdef ARDUINO_AVR_UNO
+#include <SoftwareSerial.h>
 #define BOARD "Uno"
 #endif
 
 #ifdef ESP32
 #define BOARD "ESP32"
 #endif
+
+/* time out delay */
+#define WAIT_READ_DELAY 100
+
+/* native to the sensor */ //do not change these unless you are sure on the result
+#define SCONFIG SERIAL_8N1
+#define BAUDRATE 9600
 
 /* For range mode,  */
 #define DEFAULT_RANGE 2000 // MH-Z19 works best in this range

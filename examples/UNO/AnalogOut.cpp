@@ -1,15 +1,11 @@
 
 /* 
    Note, mV to PPM only works for a range of 2000.
-   Please see AnalgOutSoftCal.cpp for other ranges or 
-   increased accuracy.
+   Please see ESP32's AnalgOutSoftCal.cpp for other ranges.
 
    The analog output is located on the brown wire on the JST     
    version. On the non-JST version it can be found on the far 
    side, beside the Rx pin.
-   
-   To get a more accurate reading (though more involved) see 
-   "AnalogOutSoftCal".
 */
 
 /*MHZ19 Library not Required*/
