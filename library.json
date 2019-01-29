@@ -1,5 +1,6 @@
+{  
   "name": "MH-Z19",
-  "description": "Library for MH-Z19 series CO2 senors which brings new & improved commands",
+  "description": "Library for MH-Z19 series CO2 senors which brings new & improved commands (UART)",
   "keywords": "MH-Z19, MHZ19, MHZ19B, MH-Z19B, CO2, UART, ANALOG",
   "repository":
   {
@@ -7,14 +8,12 @@
     "url": "https://github.com/WifWaf/MH-Z19.git"
   },
   "authors":
-  [
-    {
-            "name": "Jonathan Dempsey",
-            "email": "JDWifWaf@gmail.com",
-            "maintainer": true
-    },
-  ],
-  "version": "1.2.2",
+  {
+    "name": "Jonathan Dempsey",
+    "email": "JDWifWaf@gmail.com",
+    "maintainer": true
+  }, 
+  "version": "1.2.3",
   "frameworks": "arduino",
   "platforms": "Atmel AVR, Espressif 32"
 }

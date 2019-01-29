@@ -44,9 +44,9 @@ void setup()
 
     myMHZ19.begin();                                                            // Library Begin (this is essential)
  
-    myMHZ19.printCommunication(true); // <- COMMENT OUT if using ESP_LOG      // Shows communication between MHZ19 and Device.
-                                        //    set DCORE_DEBUG_LEVEL to DEBUG     
-    myMHZ19.autoCalibration(false);     //    instead                           // Turn Auto Calibration OFF
+    myMHZ19.printCommunication(true);                                           // Shows communication between MHZ19 and Device.
+                                             
+    myMHZ19.autoCalibration(false);                                             // Turn Auto Calibration OFF
 
     myMHZ19.getCO2();                                                           // *Holds last response from command 134 (0x86)
 }                                                                               //  in library (see description below)

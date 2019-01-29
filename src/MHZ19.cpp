@@ -285,9 +285,9 @@ void MHZ19::stablise()
 
     while (receiveResponse(responseTEMPUNLIM, TEMPUNLIM) != RESULT_OK)
     {
-        delay(500);
+        delay(WAIT_READ_DELAY);
         timeout++;
-        if (timeout >= 10)
+        if (timeout >= 50)
         {
             #ifdef ESP32
             ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor. Failed to stablise");   
@@ -306,9 +306,9 @@ void MHZ19::stablise()
 
     while (receiveResponse(responseSTAT, GETLASTRESP) != RESULT_OK)
     {
-        delay(500);
+        delay(WAIT_READ_DELAY);
         timeout++;
-        if (timeout >= 10)
+        if (timeout >= 50)
         {
             #ifdef ESP32
             ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor. Failed to stablise");   

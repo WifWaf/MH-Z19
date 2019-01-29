@@ -36,14 +36,6 @@ void setup()
    Serial.println(myMHZ19.getBackgroundCO2());
    Serial.print("Temperature Cal: ");
    Serial.println(myMHZ19.getTempAdjustment());
-
-  /* For ESP_LOG */
-  /*
-  ESP_LOGI(TAG_SYS, "Firmware Version:\t%c%c.%c%c", myVersion[0], myVersion[1], myVersion[2], myVersion[3]);
-  ESP_LOGI(TAG_SYS, "Background CO2:\t%d", myMHZ19.getBackgroundCO2());
-  ESP_LOGI(TAG_SYS, "Temperature Cal:\t%d", myMHZ19.getTempAdjustment());
-  ESP_LOGI(TAG_SYS, "Range:\t%d", myMHZ19.getRange());
-  */
 }
 
 void loop()
