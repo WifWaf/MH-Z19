@@ -1,6 +1,6 @@
 {  
   "name": "MH-Z19",
-  "description": "Library for MH-Z19 series CO2 senors which brings new & improved commands (UART)",
+  "description": "Library for MH-Z19 series CO2 senors which brings new & improved commands (UART & AO)",
   "keywords": "MH-Z19, MHZ19, MHZ19B, MH-Z19B, CO2, UART, ANALOG",
   "repository":
   {
