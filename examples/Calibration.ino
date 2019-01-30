@@ -8,6 +8,7 @@
 
 #include <Arduino.h>
 #include "MHZ19.h"                                         // include main library
+#include <SoftwareSerial.h>                                // Remove if using HardwareSerial
 
 #define RX_PIN 10                                          // Rx pin which the MHZ19 Tx pin is attached to
 #define TX_PIN 11                                          // Tx pin which the MHZ19 Rx pin is attached to

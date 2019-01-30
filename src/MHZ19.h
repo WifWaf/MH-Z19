@@ -22,10 +22,6 @@
 
 #include <Arduino.h>
 
-#ifdef ARDUINO_AVR_UNO
-#include <SoftwareSerial.h>
-#endif
-
 #ifdef ESP32
 #include "esp32-hal-log.h"
 #endif
