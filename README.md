@@ -67,27 +67,9 @@ All parameters can be bypassed using command 132 (0x84), however this requires m
 
 - [x] Include most useful and working recovered commands
 
-- [x] Improve on stability and add some level of soft restarting if possible.
+- [ ] Confirm corret units of CO2 Raw
 
-- [X] Add main usage example
-
-- [x] Add "Raw" CO2 usage example
-
-- [x] Add ESP_LOG free example 
-
-- [x] Add Software Serial Support (Uno only as ESP32 can use HardwareSerial for all pins)
-
-- [x] Add Arduino Uno Support
-
-- [x] Add Example to print Sensor Stats
-
-- [x] Add Example to help aid dysfunctional sensors
-
-- [x] Add Examples for the Uno
-
-- [X] Add Mega Support
-
-- [X] Add ESP8266 Support
+- [ ] Determine the functioning of sending byte 7 with Zero Calibration and it's relationship with Range
 
 ### Disclaimer
 ---
