@@ -8,36 +8,44 @@
 #include <Arduino.h>
 #include "MHZ19.h"
 
-#define RX_PIN 10
-#define TX_PIN 11
+#define RX_PIN 10                                          // Rx pin which the MHZ19 Tx pin is attached to
+#define TX_PIN 11                                          // Tx pin which the MHZ19 Rx pin is attached to
+#define BAUDRATE 9600                                      // Native to the sensor (do not change)
 
-MHZ19 myMHZ19(RX_PIN, TX_PIN);
+MHZ19 myMHZ19;                                             // Constructor for MH-Z19 class
+SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // Constructor for Stream class *change for HardwareSerial, i.e. ESP32 ***
+
+//HardwareSerial mySerial(1);                              // ESP32 Example 
 
 unsigned long getDataTimer = 0;
 
-void setRange(int range);                        // Declerations for non-IDE platform
+void setRange(int range);                                  // Declerations for non-IDE platform
 void printErrorCode();
 
 void setup()
 {
     Serial.begin(9600);
 
-    myMHZ19.begin();                             // Library Begin (this is essential)
+    mySerial.begin(BAUDRATE);                                // Begin Stream with MHZ19 baudrate
 
-    setRange(2000);                              // Set Range 2000
+    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);  // ESP32 Example 
+
+    myMHZ19.begin(mySerial);                                 // *Imporant, Pass your Stream reference
+
+    setRange(2000);                                          // Set Range 2000
 
      if (myMHZ19.errorCode == RESULT_OK)
-         myMHZ19.calibrateZero();                // Calibrate
+         myMHZ19.calibrateZero();                            // Calibrate
      else
         printErrorCode();
 
     if (myMHZ19.errorCode == RESULT_OK)
-        myMHZ19.setSpan(2000);                   // Set Span 2000
+        myMHZ19.setSpan(2000);                               // Set Span 2000
     else
         printErrorCode();
 
     if (myMHZ19.errorCode == RESULT_OK)
-        myMHZ19.autoCalibration(false);          // Turn ABC OFF
+        myMHZ19.autoCalibration(false);                       // Turn ABC OFF
     else
         printErrorCode();
 }

@@ -27,35 +27,41 @@
 */
 
 #include <Arduino.h>
-#include "MHZ19.h"                                                                     
+#include "MHZ19.h"                                                                   
 
-#define RX_PIN 16                                                                       
-#define TX_PIN 17                                                                       
+#define RX_PIN 10                                          // Rx pin which the MHZ19 Tx pin is attached to
+#define TX_PIN 11                                          // Tx pin which the MHZ19 Rx pin is attached to
+#define BAUDRATE 9600                                      // Native to the sensor (do not change)
 
-#define SERIAL_NUMBER 1                                                            
+MHZ19 myMHZ19;                                             // Constructor for MH-Z19 class
+SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // Constructor for Stream class *change for HardwareSerial, i.e. ESP32 ***
 
-MHZ19 myMHZ19(RX_PIN, TX_PIN, SERIAL_NUMBER);                                        
-
+//HardwareSerial mySerial(1);                              // ESP32 Example 
 unsigned long getDataTimer = 0;                                                        
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(9600);
 
-    myMHZ19.begin();                                                            // Library Begin (this is essential)
+    mySerial.begin(BAUDRATE);                               // Begin Stream with MHZ19 baudrate
+
+    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example 
+
+    myMHZ19.begin(mySerial);                                // *Imporant, Pass your Stream reference
  
-    myMHZ19.printCommunication(true);                                           // Shows communication between MHZ19 and Device.
-                                             
-    myMHZ19.autoCalibration(false);                                             // Turn Auto Calibration OFF
+    myMHZ19.printCommunication(true, true);                 // *Shows communication between MHZ19 and Device.
+                                                            // use printCommunication(true, false) to print as HEX
 
-    myMHZ19.getCO2();                                                           // *Holds last response from command 134 (0x86)
-}                                                                               //  in library (see description below)
+    myMHZ19.autoCalibration(false);                         // Turn Auto Calibration OFF
+
+    myMHZ19.getCO2();                                       // *Holds last response from command 134 (0x86)
+}                                                           //  in library (see description below)
 
 void loop()
 {
-    if (millis() - getDataTimer >= 2000)                                                
+    if (millis() - getDataTimer >= 2000)                                                // Check if interval has elapsed
     {
-  
+
         /******* functionality only deominstration as a software alarm *******/
 
         Serial.print("CO2 (ppm): ");
@@ -76,7 +82,7 @@ void loop()
                 Serial.println("Alert! CO2 out of range and could not be verified");
                 Serial.print(myMHZ19.getCO2(false, false));                          // Some alarm action
                 Serial.println(" threshold has been passed!");   
-       /* Sanity check vs Raw CO2 (has Span/Zero failed) or straight to your Alarm code */
+     /* Sanity check vs Raw CO2 (has Span/Zero failed) or straight to your Alarm code */
             }
         }
 

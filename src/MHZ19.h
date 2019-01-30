@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.2.2
+  Version: 1.3.0
 
   License: GPL-3.0
 
@@ -32,10 +32,6 @@
 
 /* time out delay */
 #define WAIT_READ_DELAY 100
-
-/* native to the sensor */ //do not change these unless you are sure on the result
-#define SCONFIG SERIAL_8N1
-#define BAUDRATE 9600
 
 /* For range mode,  */
 #define DEFAULT_RANGE 2000 // MH-Z19 works best in this range
@@ -82,11 +78,8 @@ class MHZ19
 
 	/*#####################-Initiation Functions-#####################*/
 
-	/* constructor */
-	MHZ19(byte rx, byte tx, byte s = 1); //  Argument 3 not used for non-ESP32 devices
-
 	/* essential begin */
-	void begin();
+	void begin(Stream &stream);    
 
 	/*########################-Set Functions-##########################*/
 
@@ -150,9 +143,9 @@ class MHZ19
 
   private:
 	/*###########################-Variables-##########################*/
-
-	/* constructor pins */
-	byte _rx, _tx, _s;
+     
+	/* pointer for Stream class to accept refernce for hardware and software ports */
+    Stream* mySerial; 
 
 	/* management of when sensor was last called */
 	unsigned long lastcalledtimer = 0;

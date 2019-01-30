@@ -39,15 +39,15 @@ byte Commands[13] = {
 
 /*#####################-Initiation Functions-#####################*/
 
-MHZ19::MHZ19(byte rx, byte tx, byte s) : _rx(rx), _tx(tx), _s(s) {}
-
-void MHZ19::begin()
-{
+void MHZ19::begin(Stream &serial) 
+{  
+    mySerial = &serial;    
+    
     /* establish connection */
     stablise();
 
     /* check if successful */
-    if (errorCode != RESULT_OK)
+    if (errorCode != RESULT_OK) 
     {
         #ifdef ESP32
         ESP_LOGE(TAG_MHZ19, "Initial communication errorCode recieved");
@@ -510,29 +510,11 @@ void MHZ19::write(byte toSend[])
     if (printcomm == true)
         printstream(toSend, true, errorCode);
 
-#ifdef ARDUINO_AVR_UNO
-    /* open communications */
-    SoftwareSerial mySerial(_rx, _tx);
-    mySerial.begin(BAUDRATE);
-
     /* transfer to buffer */
-    mySerial.write(toSend, 9);
-
+    mySerial->write(toSend, 9); 
+ 
     /* send */
-    mySerial.flush();
-#endif
-
-#ifdef ESP32
-    /* open communications */
-    HardwareSerial hserial(_s);
-    hserial.begin(BAUDRATE, SCONFIG, _rx, _tx);
-
-    /* transfer to buffer */
-    hserial.write(toSend, 9);
-
-    /* send */
-    hserial.flush();
-#endif
+    mySerial->flush(); 
 }
 
 void MHZ19::handleResponse(Command_Type commandtype)
@@ -561,49 +543,26 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
     /* prepare errorCode */
     errorCode = RESULT_ERR_NULL;
 
-#ifdef ARDUINO_AVR_UNO
-    /* open communications */
-    SoftwareSerial mySerial(_rx, _tx);
-    mySerial.begin(BAUDRATE);
-
     /* wait for response, allow for defined time before exit */
-    while (mySerial.available() <= 0)
+    while (mySerial->available() <= 0)
     {
         delay(WAIT_READ_DELAY);
         TimeOut++;
         if (TimeOut >= 50)
         {
-            Serial.println("!Warning: Timed out waiting for response");  
+            #ifdef ESP32    
+            ESP_LOGW(TAG_MHZ19, "Timed out waiting for response");    
+            #else
+            Serial.println("!Warning: Timed out waiting for response");
+            #endif  
+
             errorCode = RESULT_ERR_TIMEOUT;
             return RESULT_ERR_TIMEOUT;
         }
     }
 
     /* response recieved, read buffer */
-    mySerial.readBytes(inBytes, 9);
-#endif
-
-#ifdef ESP32
-    /* open communications */
-    HardwareSerial hserial(_s);
-    hserial.begin(BAUDRATE, SCONFIG, _rx, _tx);
-
-    /* wait for response, allow for defined time before exit */
-    while (hserial.available() <= 0)
-    {
-        delay(WAIT_READ_DELAY);
-        TimeOut++;
-        if (TimeOut >= 50)
-        {
-            ESP_LOGW(TAG_MHZ19, "Timed out waiting for response");            
-            errorCode = RESULT_ERR_TIMEOUT;
-            return RESULT_ERR_TIMEOUT;
-        }
-    }
-
-    /* response recieved, read buffer */
-    hserial.readBytes(inBytes, 9);
-#endif
+    mySerial->readBytes(inBytes, 9);
 
     if (errorCode == RESULT_ERR_TIMEOUT)
         return errorCode;
