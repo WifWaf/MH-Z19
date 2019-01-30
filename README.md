@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/Version-v1.3.0-green.svg)
+![Version](https://img.shields.io/badge/Version-v1.3.1-green.svg)
 
 # MH-Z19 & MH-Z19B
 
