@@ -85,9 +85,9 @@ All parameters can be bypassed using command 132 (0x84), however this requires m
 
 - [x] Add Examples for the Uno
 
-- [ ] Add Mega Support
+- [X] Add Mega Support
 
-- [ ] Add ESP8266 Support
+- [X] Add ESP8266 Support
 
 ### Disclaimer
 ---
