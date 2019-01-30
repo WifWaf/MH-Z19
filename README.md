@@ -2,7 +2,7 @@
 
 # MH-Z19 & MH-Z19B
 
-A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlocks significant commands. Currently supporting the ESP32 & UNO (If you would like additional board support please contact me)
+A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlocks significant commands. Supports Hardware/Softeware serial and arduino based boads.
 
 ---
 
@@ -24,9 +24,9 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 ### "Usage"
 ---
 
-* UNO & ESP32: The library can be found in the IDE/IO library manager. Alternatively, simply clone this library to your working library folder and include "MHZ19.h" in your main sketch.
+The library can be found in the IDE/IO library manager. Alternatively, simply clone this library to your working library folder and include "MHZ19.h" in your main sketch.
 
-If you would like support for an additional device not yet included, please contact me.
+If you are having issues with specific boards, please contact me (find my details below)
 
 ### "A Bit About the Sensor"
 ---
