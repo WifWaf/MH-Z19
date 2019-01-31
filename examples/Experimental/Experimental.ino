@@ -7,9 +7,22 @@
   crossing of x to produce a 7-decimal place % value. (i.e. what % of 
   IR radiation was received of the amount sent).
 
- Below demonstrates transmittance, and the exponential equation from my 
+  Below demonstrates transmittance, and the exponential equation from my 
  sensor under such conditions.
+
+ ZeroCalibrte(Range):   ****Unknown Affect - Caution****
+  The library uses the entered range to send an additional byte with the
+  calibration command. The byte sent is matched as the closest to your 
+  range, based on prior obserations in responses from the sesnor. 
+ 
+  For example entered 2150, a decimal value of 9 is sent, which returns a
+  command which can be interpreted as 2000. At the moment,it is unclear
+  of the affect, or whether this byte is part of a set of bytes that must 
+  be sent. However, they do not affect the alarm (set points), of course
+  it could be that the alarm is disabled somewhere else and this currently
+  defunct. 
  */
+
 #include <Arduino.h>
 #include "MHZ19.h"
 #include <SoftwareSerial.h>                                // Remove if using HardwareSerial
@@ -34,6 +47,8 @@ void setup()
     //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example 
 
     myMHZ19.begin(mySerial);                                 // *Imporant, Pass your Stream reference
+
+    //myMHZ19.calibrateZero(2000);                             // Sends zero calibration with the corrasponding 2000 range byte, at byte 7.
 }
 
 void loop()
