@@ -6,14 +6,13 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 
 ---
 
-|            New Additions            |         Existing Additions    |          Testing                  |
+|             Additions               |            Existing           |          Testing                  |
 |              :---:                  |              :---:            |          :---:                    |
 | CO2 Unlimited                       | CO2 Limited                   |     ^Transmittance (%)            |
 | CO2 as Raw                          | Temperature as Whole Integer  |  Zero Calibration (range byte)    |
 | CO2 via Analog Out (non-PWM)        | Request CO2 Calibration       |       Custom ABC                  |
-| Temp @ 0.06C° Resolution (Celsius)  | ABC On / Off                  |
+| Temp @ 0.06C° Resolution (Celsius)  | ABC On / Off                  |       Reset Sequence              |
 | Custom Range / Span                 | Retrieve Accuracy             |
-| Reset Sequence                      |                               |
 | Get Firmware Version                |                               |
 | Get Background CO2 Value            |                               |
 | Get Range Value                     |                               |
