@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/Version-v1.3.3-green.svg)
+![Version](https://img.shields.io/badge/Version-v1.3.4-green.svg)
 
 # MH-Z19 & MH-Z19B
 
@@ -8,18 +8,18 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 
 |            New Additions            |         Existing Additions    |          Testing                  |
 |              :---:                  |              :---:            |          :---:                    |
-| CO2 Unlimited                       |   CO2 Limited Value           |     ^Transmittance (%)            |
-| CO2 as Raw                          | Temperature as Single Integer |  Zero Calibration (range byte)    |
-| CO2 via Aanalog Out (non-PWM)       | Request CO2 Calibration       |
+| CO2 Unlimited                       | CO2 Limited                   |     ^Transmittance (%)            |
+| CO2 as Raw                          | Temperature as Whole Integer  |  Zero Calibration (range byte)    |
+| CO2 via Analog Out (non-PWM)        | Request CO2 Calibration       |       Custom ABC                  |
 | Temp @ 0.06C° Resolution (Celsius)  | ABC On / Off                  |
-| Custom ABC / Range / Span           | Standard Range / Span         |
-| Reset Sequence                      | Retrieve Accuracy             |
-| Firmware Version                    |                               |
-| Background CO2 Value                |                               |
-| Range Value                         |                               |
-| RLast Response                      |                               |
+| Custom Range / Span                 | Retrieve Accuracy             |
+| Reset Sequence                      |                               |
+| Get Firmware Version                |                               |
+| Get Background CO2 Value            |                               |
+| Get Range Value                     |                               |
+| Get Last Response                   |                               |
 
-^*Transmittance is based upon the backwards projection of the raw value (which decreases with CO2) - see examples or [My Notes (Ravings?)](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/EbJQ1brh7K5CtMFkKN1b8GEBMxIFYk8AMesjk0zOtvYyGg?e=6FhMvV)*
+^*Transmittance is based upon the backwards projection of the raw value (which decreases with CO2) - see examples or [My Notes (Ravings?)](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
 
 ### "Usage"
 ---
