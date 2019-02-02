@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.3
+  Version: 1.3.4
 
   License: GPL-3.0
 
@@ -87,11 +87,8 @@ void MHZ19::setSpan(int span)
         #endif 
     }
     else
-    {
         provisioning(SPANCAL);
-        isZeroLast = false;
-    }
-
+ 
     return;
 }
 
@@ -145,7 +142,7 @@ float MHZ19::getTransmittance(bool force)
     {
         float calc = (float)bytes2int((responseRAW[2]), responseRAW[3]);
 
-        return (calc * 100 / 40000); //  (calc * topercent / Raw set point High)
+        return (calc * 100 / 35000); //  (calc * to percent / x(raw) zero)
     }
 
     else
@@ -339,16 +336,21 @@ void MHZ19::stablise()
 
 void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
 {
-    if (ABCPeriod >= 24)
-        ABCPeriod = 180;
-    else
-        ABCPeriod = (ABCPeriod * 7.5); // 7.5 represents the average days in a 4 week month
+    if (ABCPeriod && isON)
+    {
+        if(ABCPeriod >= 24)
+            ABCPeriod = 160;            
+        else
+            ABCPeriod *= 6.7;
+    }
 
+    else if (isON)
+        ABCPeriod = 160;
+ 
     ABCRepeat = !isON;
 
     provisioning(ABC, ABCPeriod);
 }
-
 void MHZ19::calibrateZero(int rangeCal)
 {
     if (rangeCal)
@@ -388,9 +390,6 @@ void MHZ19::calibrateZero(int rangeCal)
 
     else
         provisioning(ZEROCAL);
-
-    if (errorCode == RESULT_OK)
-        isZeroLast = true;
 }
 
 void MHZ19::recoveryReset()

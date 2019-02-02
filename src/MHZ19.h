@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.3
+  Version: 1.3.4
 
   License: GPL-3.0
 
@@ -40,7 +40,7 @@ enum ERRORCODE
 	RESULT_ERR_TIMEOUT = 2,
 	RESULT_ERR_MATCH = 3,
 	RESULT_ERR_CRC = 4,
-	RESULT_FAILED = 5,
+	RESULT_FAILED = 5
 };
 
 /* alias from command type */
@@ -126,7 +126,7 @@ class MHZ19
 	void stablise();
 
 	/* disables calibration or sets ABCPeriod */
-	void autoCalibration(bool isON = true, byte ABCPeriod = 21);
+	void autoCalibration(bool isON = true, byte ABCPeriod = 0);
 
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
 	void calibrateZero(int rangeCal = 0);
@@ -147,10 +147,7 @@ class MHZ19
 	unsigned long lastcalledtimer = 0;
 
 	/* A flag which represents whether autocalibration abcperiod is checked */
-	bool ABCRepeat = true;
-
-	/* For warniing message to check if Zero / Span have set in the correct order */
-	bool isZeroLast = false;
+	bool ABCRepeat = false; 
 
 	/* Communication Print Option */
 	bool printcomm = false;
