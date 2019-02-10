@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/Version-v1.3.4-green.svg)
+![Version](https://img.shields.io/badge/Version-v1.3.5-green.svg)
 
 ### "Usage"
 This version contains all the same functionaly as the main libary. The only difference is that the I2C pins are passed into the constructor and begin() is left blank.
