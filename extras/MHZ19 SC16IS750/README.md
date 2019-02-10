@@ -2,7 +2,6 @@
 
 ### "Usage"
 This version contains all the same functionaly as the main libary. The only difference is that the I2C pins are passed into the constructor and begin() is left blank. See examples (basic usage only as all functions are the same)
-```
 
 ### This version uses a Sandbox Electronic library with minor changes available here: https://github.com/SandboxElectronics/UART_Bridge
 ---
