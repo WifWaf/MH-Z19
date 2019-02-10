@@ -31,7 +31,7 @@ void setup()
 
     //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example 
 
-    myMHZ19.begin(mySerial);                                // *Imporant, Pass your Stream reference
+    myMHZ19.begin(mySerial);                                // *Important, Pass your Stream reference
 
     /*            ### setRange(value)###  
        Basic:
@@ -65,9 +65,10 @@ void setup()
 
     /*            ###autoCalibration(false)###  
        Basic:
-       autoCalibration(false) - turns autocalibration OFF. (automatically sent every 12 hours)
-       autoCalibration(true)  - turns autocalibration ON.
-       autoCalibration()      - turns autocalibration ON.
+       autoCalibration(false) - turns auto calibration OFF. (automatically sent every 12 hours)
+       autoCalibration(true)  - turns auto calibration ON.
+       autoCalibration()      - turns auto calibration ON.
+       Default                - auto calibration OFF.
 
        Advanced:
        autoCalibration(true, 24) - turns autocalibration ON and calibration period to 24 hrs (maximum value allowed).

@@ -1,7 +1,11 @@
 /*************************************************** 
-  Written by: Jonathan Dempsey JDWifWaf@gmail.com
+  Author: Jonathan Dempsey JDWifWaf@gmail.com
+  
+  Version: 1.3.5
 
-  This is a library for the MHZ19 CO2 Sensor
+  License: GPL-3.0
+
+  This is a library for the MHZ19 CO2 Sensor 
 
   The sensors uses UART to communicate and sends
   9 bytes in a modbus-like sequence. The sensor
@@ -14,7 +18,13 @@
  ****************************************************/
 
 #include "MHZ19.h"
+#include "SC16IS750.h"
+
+#ifdef ESP32
 #include "esp32-hal-log.h"
+#endif
+
+SC16IS750 i2cuart = SC16IS750(SC16IS750_PROTOCOL_I2C, SC16IS750_ADDRESS_BB);
 
 /*#########################-Commands-##############################*/
 
@@ -36,16 +46,37 @@ byte Commands[13] = {
 
 /*#####################-Initiation Functions-#####################*/
 
-MHZ19::MHZ19(byte rx, byte tx, byte s) : _rx(rx), _tx(tx), _s(s) {}
+MHZ19::MHZ19(byte SDA, byte SDL)
+{
+    i2cuart.setI2CPin(SDA, SDL);
+}
 
 void MHZ19::begin()
 {
+     /* UART to Serial Bridge Initialization */
+    i2cuart.begin(BAUDRATE);
+
+    if (i2cuart.ping() != 1)
+    {
+    #ifdef ESP32
+        ESP_LOGE(TAG_MHZ19, "SC16IS750 bridge not found");
+    #else
+        Serial.println("!ERROR: SC16IS750 bridge not found");
+    #endif
+    }
+
     /* establish connection */
     stablise();
 
     /* check if successful */
     if (errorCode != RESULT_OK)
-        ESP_LOGE(TAG_MHZ19, "<!ERROR> Failed to establish connection");
+    {
+    #ifdef ESP32
+        ESP_LOGE(TAG_MHZ19, "Initial communication errorCode recieved");
+    #else
+        Serial.println("!ERROR: Initial communication errorCode recieved");
+    #endif
+    }
 }
 
 /*########################-Set Functions-##########################*/
@@ -54,7 +85,11 @@ void MHZ19::setRange(int range)
 {
     if (range > 65000)
     {
+    #ifdef ESP32
         ESP_LOGE(TAG_MHZ19, "Invalid Range value (0 - 65000)");
+    #else
+        Serial.println("!ERROR: Invalid Range value (0 - 65000)");
+    #endif
         return;
     }
 
@@ -64,18 +99,16 @@ void MHZ19::setRange(int range)
 
 void MHZ19::setSpan(int span)
 {
-    if (isZeroLast == false)
-        ESP_LOGW(TAG_MHZ19, "Zero Calibration should be sent before Span");
-
     if (span > 10000)
     {
+    #ifdef ESP32
         ESP_LOGE(TAG_MHZ19, "Invalid Span value (0 - 10000)");
+    #else
+        Serial.println("!ERROR: Invalid Span value (0 - 10000)");
+    #endif
     }
     else
-    {
         provisioning(SPANCAL);
-        isZeroLast = false;
-    }
 
     return;
 }
@@ -91,7 +124,7 @@ int MHZ19::getCO2(bool force, bool isunLimited)
 
         if (errorCode == RESULT_OK || force == false)
         {
-            return bytes2int(responseTEMPUNLIM[4], responseTEMPUNLIM[5]);
+            return (int)bytes2int(responseTEMPUNLIM[4], responseTEMPUNLIM[5]);
         }
     }
 
@@ -102,22 +135,20 @@ int MHZ19::getCO2(bool force, bool isunLimited)
 
         if (errorCode == RESULT_OK || force == false)
         {
-            return bytes2int(responseTEMPLIM[2], responseTEMPLIM[3]);
+            return (int)bytes2int(responseTEMPLIM[2], responseTEMPLIM[3]);
         }
     }
 
     return 0;
 }
 
-int MHZ19::getCO2Raw(bool force)
+float MHZ19::getCO2Raw(bool force)
 {
     if (force == true)
         provisioning(RAWCO2);
 
     if (errorCode == RESULT_OK || force == false)
-    {
-        return bytes2int((responseRAW[2]), responseRAW[3]);
-    }
+        return bytes2int(responseRAW[2], responseRAW[3]);
 
     else
         return 0;
@@ -131,7 +162,8 @@ float MHZ19::getTransmittance(bool force)
     if (errorCode == RESULT_OK || force == false)
     {
         float calc = (float)bytes2int((responseRAW[2]), responseRAW[3]);
-        return ((calc * 100) / 40000);
+
+        return (calc * 100 / 35000); //  (calc * topercent / Raw set point High)
     }
 
     else
@@ -181,7 +213,7 @@ int MHZ19::getRange()
 
     if (errorCode == RESULT_OK)
         /* convert MH-Z19 memory value and return */
-        return bytes2int(responseSTAT[4], responseSTAT[5]);
+        return (int)bytes2int(responseSTAT[4], responseSTAT[5]);
 
     else
         return 0;
@@ -226,7 +258,7 @@ int MHZ19::getBackgroundCO2()
     provisioning(GETCALPPM);
 
     if (errorCode == RESULT_OK)
-        return bytes2int(responseSTAT[4], responseSTAT[5]);
+        return (int)bytes2int(responseSTAT[4], responseSTAT[5]);
 
     else
         return 0;
@@ -264,8 +296,6 @@ void MHZ19::stablise()
 {
     int timeout = 0;
 
-    ESP_LOGD(TAG_MHZ19, "Waiting for the OK Status..");
-
     /* construct common command (133) */
     constructCommand(TEMPUNLIM);
 
@@ -273,11 +303,15 @@ void MHZ19::stablise()
 
     while (receiveResponse(responseTEMPUNLIM, TEMPUNLIM) != RESULT_OK)
     {
-        delay(500);
+        delay(WAIT_READ_DELAY);
         timeout++;
-        if (timeout >= 10)
+        if (timeout >= 50)
         {
-            ESP_LOGE(TAG_MHZ19, "EERROR, failed to recieve OK (1)");
+        #ifdef ESP32
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor. Failed to stablise");
+        #else
+            Serial.println("!ERROR: Failed to verify connection(1) to sensor. Failed to stablise");
+        #endif
             return;
         }
     }
@@ -289,11 +323,16 @@ void MHZ19::stablise()
 
     while (receiveResponse(responseSTAT, GETLASTRESP) != RESULT_OK)
     {
-        delay(500);
+        delay(WAIT_READ_DELAY);
         timeout++;
-        if (timeout >= 10)
+        if (timeout >= 50)
         {
-            ESP_LOGE(TAG_MHZ19, "EERROR, failed to recieve OK (2)");
+        #ifdef ESP32
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor. Failed to stablise");
+        #else
+            Serial.println("!ERROR: Failed to verify connection(2) to sensor. Failed to stablise");
+        #endif
+
             return;
         }
     }
@@ -303,21 +342,31 @@ void MHZ19::stablise()
     {
         if (responseTEMPUNLIM[i] != responseSTAT[i])
         {
-            ESP_LOGE(TAG_MHZ19, "EERROR, callback failed");
+        #ifdef ESP32
+            ESP_LOGE(TAG_MHZ19, "Last response was not found, call back failed. Failed to stablise");
+        #else
+            Serial.println("!ERROR: Last response was not found, call back failed. Failed to stablise");
+        #endif
+
+            return;
         }
     }
-
-    ESP_LOGD(TAG_MHZ19, "Stabalised");
     return;
 }
 
 void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
 {
-    if (ABCPeriod >= 24)
-        ABCPeriod = 180;
-    else
-        ABCPeriod = (ABCPeriod * 7.5); // 7.5 represents the average days in a 4 week month
+    if (ABCPeriod && isON)
+    {
+        if(ABCPeriod >= 24)
+            ABCPeriod = 160;            
+        else
+            ABCPeriod *= 6.7;
+    }
 
+    else if (isON)
+        ABCPeriod = 160;
+ 
     ABCRepeat = !isON;
 
     provisioning(ABC, ABCPeriod);
@@ -362,14 +411,17 @@ void MHZ19::calibrateZero(int rangeCal)
 
     else
         provisioning(ZEROCAL);
-
-    if (errorCode == RESULT_OK)
-        isZeroLast = true;
 }
 
 void MHZ19::recoveryReset()
 {
     provisioning(RECOVER);
+}
+
+void MHZ19::printCommunication(bool isPrintComm, bool isDec)
+{
+    _isDec = isDec;
+    printcomm = isPrintComm;
 }
 
 /*######################-Inernal Functions-########################*/
@@ -474,18 +526,15 @@ byte MHZ19::checkSum(byte inBytes[])
 
 void MHZ19::write(byte toSend[])
 {
-    /* open communications */
-    HardwareSerial hserial(_s);
-    hserial.begin(BAUDRATE, SCONFIG, _rx, _tx);
+    /* Send to SC16IS750 */
+    for (byte i = 0; i < 9; i++)
+    {
+        i2cuart.write(toSend[i]);
+    }
 
-    /* print for debug */
-    printstream(toSend, true, errorCode);
-
-    /* transfer to buffer */
-    hserial.write(toSend, 9);
-
-    /* send */
-    hserial.flush();
+    /* for print communications */
+    if (printcomm == true)
+        printstream(toSend, true, errorCode);
 }
 
 void MHZ19::handleResponse(Command_Type commandtype)
@@ -514,25 +563,35 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
     /* prepare errorCode */
     errorCode = RESULT_ERR_NULL;
 
-    /* open communications */
-    HardwareSerial hserial(_s);
-    hserial.begin(BAUDRATE, SCONFIG, _rx, _tx);
-
-    /* wait for response, allow for defined time before exit */
-    while (hserial.available() <= 0)
+    /* Read from SC16IS750 */
+    while (i2cuart.available() == 0)
     {
         delay(WAIT_READ_DELAY);
+
         TimeOut++;
         if (TimeOut >= 50)
         {
-            ESP_LOGW(TAG_MHZ19, "Timed Out!");
+        #ifdef ESP32
+            ESP_LOGW(TAG_MHZ19, "Timed out waiting for response");
+        #else
+            Serial.println("!Warning: Timed out waiting for response");
+        #endif
+
             errorCode = RESULT_ERR_TIMEOUT;
             return RESULT_ERR_TIMEOUT;
         }
     }
 
-    /* response recieved, read buffer */
-    hserial.readBytes(inBytes, 9);
+    byte index = 0;
+    while (i2cuart.available() > 0)
+    {
+        inBytes[index] = i2cuart.read();
+        index++;
+    }
+
+    if (errorCode == RESULT_ERR_TIMEOUT)
+        return errorCode;
+
     byte crc = checkSum(inBytes);
 
     /* CRC error will not overide match error */
@@ -547,36 +606,101 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
     if (errorCode == RESULT_ERR_NULL)
         errorCode = RESULT_OK;
 
-    /* print results to ESP_LOG */
-    printstream(inBytes, false, errorCode);
+    /* print results */
+    if (printcomm == true)
+        printstream(inBytes, false, errorCode);
 
     return errorCode;
 }
 
-void MHZ19::printstream(byte inbytes[9], bool isSent, byte pserrorCode)
+void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
 {
+   
+    #ifdef ESP32      
     if (pserrorCode != RESULT_OK && isSent == false)
     {
-        if (isDec)
+        if (_isDec)
             ESP_LOGE(TAG_MHZ19, "Recieved >> %d %d %d %d %d %d %d %d %d ERROR Code: %d",
-                     inbytes[0], inbytes[1], inbytes[2], inbytes[3], inbytes[4], inbytes[5], inbytes[6], inbytes[7], inbytes[8],
+                     inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8],
                      pserrorCode);
         else
             ESP_LOGE(TAG_MHZ19, "Recieved >> %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x ERROR Code: %d",
-                     inbytes[0], inbytes[1], inbytes[2], inbytes[3], inbytes[4], inbytes[5], inbytes[6], inbytes[7], inbytes[8],
+                     inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8],
                      pserrorCode);
     }
 
     else
     {
-        if (isDec)
+        if (_isDec)
             ESP_LOGD(TAG_MHZ19, "%s %d %d %d %d %d %d %d %d %d PASS", isSent ? "Sent << " : "Recieved >> ",
-                     inbytes[0], inbytes[1], inbytes[2], inbytes[3], inbytes[4], inbytes[5], inbytes[6], inbytes[7], inbytes[8]);
+                     inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8]);
         else
 
             ESP_LOGD(TAG_MHZ19, "%s %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x PASS", isSent ? "Sent << " : "Recieved >> ",
-                     inbytes[0], inbytes[1], inbytes[2], inbytes[3], inbytes[4], inbytes[5], inbytes[6], inbytes[7], inbytes[8]);
+                     inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8]);
     }
+     
+    #else
+    if (pserrorCode != RESULT_OK && isSent == false)
+    {
+        Serial.print("Recieved >> ");
+
+        if (_isDec)
+        {
+            Serial.print("DEC: ");
+            for (uint8_t i = 0; i < 9; i++)
+            {
+                Serial.print(inBytes[i]);
+                Serial.print(" ");
+            }
+        }
+
+        else
+        {
+            for (uint8_t i = 0; i < 9; i++)
+            {
+                Serial.print("0x");
+                if (inBytes[i] < 16)
+                    Serial.print("0");
+                Serial.print(inBytes[i], HEX);
+                Serial.print(" ");
+            }
+        }
+
+        Serial.print("ERROR Code: ");
+        Serial.println(pserrorCode);
+    }
+
+    else
+    {
+        isSent ? Serial.print("Sent << ") : Serial.print("Recieved >> ");
+
+        if (_isDec)
+        {
+            Serial.print("DEC: ");
+            for (uint8_t i = 0; i < 9; i++)
+            {
+                Serial.print(inBytes[i]);
+                Serial.print(" ");
+            }
+        }
+
+        else
+        {
+
+            for (uint8_t i = 0; i < 9; i++)
+            {
+                Serial.print("0x");
+                if (inBytes[i] < 16)
+                    Serial.print("0");
+                Serial.print(inBytes[i], HEX);
+                Serial.print(" ");
+            }
+        }
+        Serial.println(" ");
+    }           
+    #endif
+    
 }
 
 void MHZ19::ABCCheck()
@@ -603,10 +727,9 @@ void MHZ19::int2bytes(int inInt, byte *high, byte *low)
     return;
 }
 
-int MHZ19::bytes2int(byte high, byte low)
+uint16_t MHZ19::bytes2int(byte high, byte low)
 {
-    int _high = (int)(high);
-    int _low = (int)(low);
+    uint16_t calc = ((uint16_t)high * 256) + (uint16_t)low;
 
-    return (256 * _high) + _low;
+    return calc;
 }

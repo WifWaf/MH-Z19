@@ -41,7 +41,7 @@ void setup()
 
     myMHZ19.printCommunication();                            // Error Codes are also included here if found (not suitable outside of debugging)
 
-    myMHZ19.begin(mySerial);                                 // *Imporant, Pass your Stream reference
+    myMHZ19.begin(mySerial);                                 // *Important, Pass your Stream reference
 
     setRange(2000);                                          // Set Range 2000 using a function, see below
 }

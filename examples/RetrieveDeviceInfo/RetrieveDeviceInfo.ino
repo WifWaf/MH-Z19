@@ -19,7 +19,7 @@ void setup()
 
   //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example 
 
-  myMHZ19.begin(mySerial);                                // *Imporant, Pass your Stream reference here
+  myMHZ19.begin(mySerial);                                // *Important, Pass your Stream reference here
 
   /*
     getVersion(char array[]) returns version number to the argument. The first 2 char are the major 

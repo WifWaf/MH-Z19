@@ -21,9 +21,9 @@ void setup()
     
     //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example 
 
-    myMHZ19.begin(mySerial);                                // *Imporant, Pass your Stream reference 
+    myMHZ19.begin(mySerial);                                // *Important, Pass your Stream reference 
 
-    myMHZ19.autoCalibration();                              // Turn ABC ON. Disable with autoCalibration(false)
+    myMHZ19.autoCalibration();                              // Turn ABC ON. Disable with autoCalibration(false) (also default)
 }
 
 void loop()

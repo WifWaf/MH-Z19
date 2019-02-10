@@ -48,7 +48,7 @@ void setup()
 
     //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example 
 
-    myMHZ19.begin(mySerial);                                // *Imporant, Pass your Stream reference
+    myMHZ19.begin(mySerial);                                // *Important, Pass your Stream reference
  
     myMHZ19.printCommunication(true, true);                 // *Shows communication between MHZ19 and Device.
                                                             // use printCommunication(true, false) to print as HEX
