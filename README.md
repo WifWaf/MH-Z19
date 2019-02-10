@@ -1,6 +1,6 @@
 ![Version](https://img.shields.io/badge/Version-v1.3.5-green.svg)
 
-> See extras for I2C SC16IS750 Version
+> !note. See extras for I2C version using the SC16IS750 UART bridge.
 
 # MH-Z19 & MH-Z19B
 
