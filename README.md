@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/Version-v1.3.5-green.svg)
+![Version](https://img.shields.io/badge/Version-v1.3.6-green.svg)
 
 > See extras for I2C version using the SC16IS750 UART bridge.
 
@@ -13,12 +13,12 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 | CO2 Unlimited                       | CO2 Limited                   |     ^Transmittance (%)            |
 | CO2 as Raw                          | Temperature as Whole Integer  |  Zero Calibration (range byte)    |
 | CO2 via Analog Out (non-PWM)        | Request CO2 Calibration       |       Custom ABC                  |
-| Temp @ 0.06C° Resolution (Celsius)  | ABC On / Off                  |       Reset Sequence              |
-| Custom Range / Span                 | Retrieve Accuracy             |
-| Get Firmware Version                |                               |
+| Custom Range / Span                 | ABC On / Off                  |       Reset Sequence              |
+| Get Firmware Version                | Retrieve Accuracy             |     Temp @ 0.06C° Resolution      |
 | Get Background CO2 Value            |                               |
 | Get Range Value                     |                               |
 | Get Last Response                   |                               |
+
 
 ^*Transmittance is based upon the backwards projection of the raw value (which decreases with CO2) - see examples or [My Notes (Ravings?)](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
 

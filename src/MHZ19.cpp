@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.5
+  Version: 1.3.6
 
   License: GPL-3.0
 
@@ -158,14 +158,7 @@ float MHZ19::getTemperature(bool force, bool isunLimited)
 
         if (errorCode == RESULT_OK || force == false)
         {
-            /* Byte 2 (counting 0) holds magnitudes of 10, which is
-            transformed to the correct magnitude by deducting 8 
-            (this also handles negatives). 
-            
-            Byte 3 holds a value of where each increment of 17 
-            (in bytes) gives 1 degrees celsius. 
-            
-            Both calulations are multipled by 100 for resolution. */
+            /* Value appears to be for CO2 correction, unclear on consitent usage - default is now off*/
 
             float calc = (((responseTEMPUNLIM[2] - 8) * 1500) + ((responseTEMPUNLIM[3] * 100) * 1 / 17));
             calc /= 100;
@@ -273,7 +266,7 @@ byte MHZ19::getLastResponse(byte bytenum)
 
 void MHZ19::stablise()
 {
-    int timeout = 0;
+    uint8_t timeout = 0;
 
     /* construct common command (133) */
     constructCommand(TEMPUNLIM);

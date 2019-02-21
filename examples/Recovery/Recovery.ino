@@ -107,7 +107,7 @@ void loop()
             Serial.print("CO2 (ppm): ");
             Serial.println(CO2);
 
-            float Temp;                                 // Buffer for temperature
+            int8_t Temp;                                 // Buffer for temperature
             Temp = myMHZ19.getTemperature(false);       // Request Temperature (as Celsius), new request = false;
 
             Serial.print("Temperature (C): ");

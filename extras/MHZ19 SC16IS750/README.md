@@ -1,6 +1,9 @@
 ![Version](https://img.shields.io/badge/Version-v1.3.5-green.svg)
 
 ### "Usage"
+
+Copy MHZ19.cpp, MHZ19.h, SC16IS750.h and SC16IS750.cpp to a folder.
+
 This version contains all the same functionaly as the main libary. The only difference is that the I2C pins are passed into the constructor and begin() is left blank. See examples (basic usage only as all functions are the same)
 
 ### This version uses a Sandbox Electronic library with minor changes available here: https://github.com/SandboxElectronics/UART_Bridge

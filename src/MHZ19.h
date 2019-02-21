@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.5
+  Version: 1.3.6
 
   License: GPL-3.0
 
@@ -97,7 +97,7 @@ class MHZ19
 	float getTransmittance(bool force = true);
 
 	/*  returns temperature to 0.06C, if isFloat = false, command 134 is instead used */
-	float getTemperature(bool force = true, bool isunLimited = true);
+	float getTemperature(bool force = true, bool isunLimited = false);
 
 	/* reads range using command 153 */
 	int getRange();

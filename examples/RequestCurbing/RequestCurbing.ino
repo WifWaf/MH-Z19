@@ -19,11 +19,10 @@
     isUnlimited:
     (true)  Use unlimimted CO2 / command 133. 
     (false) Use limied CO2 / command 134.        
-    (true)  Default.
+    (false)  Default.
 
-    Note: getTemperature("new response array", " is unlimited type") also uses
-    the same functionality and should be considered in conjunction. Most other
-    commands share a seperate array.
+    *!Note - decimal temperature does not appear to be working correctly at the moment, 
+     so default hyas been changed to false
 */
 
 #include <Arduino.h>
