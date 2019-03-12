@@ -11,10 +11,11 @@
   sensor under such conditions.
 
  Temperature Offset:
-  Orginaly this was tempeature to a higher decimal place, however my sensors
-  algorythm was broken from testing. Instead this appears to be an offset from 
-  24 C with decimal precision. So, it can  be used to calculate tempeature
-  to decimal precision and might provide help to those determine CO2 from Raw.
+  Orginaly this was tempeature to decimal place, however my sensors tempeature
+  algorithm was broken from testing. Instead, this appears to be an offset from 
+  24 C with decimal place recision. Therefore, it can  be used to calculate tempeature
+  to decimal precision from the normal whole integer. This might also prove helpful 
+  to anyone looking to determine CO2 ppm from the Raw value.
 
  Temperature as Dec:
   As mentioned above.

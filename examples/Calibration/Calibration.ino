@@ -68,10 +68,9 @@ void setup()
        autoCalibration(false) - turns auto calibration OFF. (automatically sent every 12 hours)
        autoCalibration(true)  - turns auto calibration ON.
        autoCalibration()      - turns auto calibration ON.
-       Default                - auto calibration OFF.
 
        Advanced:
-       autoCalibration(true, 24) - turns autocalibration ON and calibration period to 24 hrs (maximum value allowed).
+       autoCalibration(true, 12) - turns autocalibration ON and calibration period to 12 hrs (maximum 24hrs).
     */
 
     myMHZ19.autoCalibration(false);  
