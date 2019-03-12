@@ -4,7 +4,9 @@
 #define SDA A4                      // Arduino Uno Pins
 #define SDL A5                      // Arduino Uno Pins
 
-MHZ19 myMHZ19(SDA, SDL);            // Pass your I2C pins here
+#define SC16IS750_ADDRESS_BB  (0X9A)
+
+MHZ19 myMHZ19(SDA, SDL, SC16IS750_ADDRESS_BB); // pass your I2C pins here and SC16IS750 address (see SC16IS750 header file)
 
 unsigned long getDataTimer; 
 

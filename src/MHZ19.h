@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.6
+  Version: 1.3.7
 
   License: GPL-3.0
 
@@ -88,7 +88,7 @@ class MHZ19
 	/*########################-Get Functions-##########################*/
 
 	/* request CO2 values, 2 types of CO2 can be returned, isLimted = true (command 134) and is Limited = false (command 133) */
-	int getCO2(bool force = true, bool isunLimited = true);
+	int getCO2(bool isunLimited = true, bool force = true);
 
 	/* returns the "raw" CO2 value of unknown units */
 	float getCO2Raw(bool force = true);
@@ -96,8 +96,11 @@ class MHZ19
 	/* returns Raw CO2 value as a % of transmittance */ //<--- needs work to understand
 	float getTransmittance(bool force = true);
 
-	/*  returns temperature to 0.06C, if isFloat = false, command 134 is instead used */
-	float getTemperature(bool force = true, bool isunLimited = false);
+	/*  returns temperature using command 134 or 135 if isDec = true */
+	float getTemperature(bool isDec = false, bool force = true);
+	
+	/* Returns what appears to be an offset */ //<----- knowledgable people might have success the raw value
+	float getTemperatureOffset(bool force = true);
 
 	/* reads range using command 153 */
 	int getRange();
@@ -114,7 +117,7 @@ class MHZ19
 	/* returns background CO2 using command 156 */
 	int getBackgroundCO2();
 
-	/* returns temperature using command 163 (Note: this library deducts -2 as it is incorrect and is adjusted by the code here) */
+	/* returns temperature using command 163 (Note: this library deducts -2 from getTemperature() as it is incorrect) */
 	byte getTempAdjustment();
 
 	/* returns last recorded response from device using command 162 */
@@ -126,7 +129,7 @@ class MHZ19
 	void stablise();
 
 	/* disables calibration or sets ABCPeriod */
-	void autoCalibration(bool isON = true, byte ABCPeriod = 0);
+	void autoCalibration(bool isON = true, byte ABCPeriod = 24);
 
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
 	void calibrateZero(int rangeCal = 0);
@@ -135,7 +138,7 @@ class MHZ19
 	void recoveryReset();
 
 	/* use to show communication between MHZ19 and  Device */
-	void printCommunication(bool isPrintComm = true, bool isDec = true);
+	void printCommunication(bool isDec = true, bool isPrintComm = true);
 
   private:
 	/*###########################-Variables-##########################*/
@@ -143,11 +146,11 @@ class MHZ19
 	/* pointer for Stream class to accept refernce for hardware and software ports */
     Stream* mySerial; 
 
-	/* management of when sensor was last called */
-	unsigned long lastcalledtimer = 0;
-
 	/* A flag which represents whether autocalibration abcperiod is checked */
 	bool ABCRepeat = false; 
+  
+	/* Holds interval for turning autocalibration off periodicaly */
+	unsigned long ABCInterval = 4.32e7;
 
 	/* Communication Print Option */
 	bool printcomm = false;

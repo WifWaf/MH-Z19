@@ -35,9 +35,17 @@ Please keep the above information when you use this code in your project.
 //#define SC16IS750_DEBUG_PRINT
 
 
-SC16IS750::SC16IS750(uint8_t prtcl, uint8_t addr_sspin)
+SC16IS750::SC16IS750(uint8_t prtcl)
 { 
     protocol = prtcl;
+}
+
+void SC16IS750::begin(uint32_t baud, uint8_t SDA, uint8_t SDL, uint8_t addr_sspin) 
+{
+    _SDA = SDA; 
+    _SDL = SDL;
+    
+    
     if (protocol == SC16IS750_PROTOCOL_I2C)
     {
         device_address_sspin = (addr_sspin >> 1);
@@ -46,18 +54,10 @@ SC16IS750::SC16IS750(uint8_t prtcl, uint8_t addr_sspin)
     {
         device_address_sspin = addr_sspin;
     }
-    peek_flag = 0;
-    //	timeout = 1000;
-}
-
-void SC16IS750::setI2CPin(uint8_t SDA, uint8_t SDL)
-{
-    _SDA = SDA; 
-    _SDL = SDL;
-}
-
-void SC16IS750::begin(uint32_t baud) 
-{
+    peek_flag = 0; 
+    //	timeout = 1000;    
+    
+    
     //Serial.println("1111111111111111");
     if (protocol == SC16IS750_PROTOCOL_I2C)
     {

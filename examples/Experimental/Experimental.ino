@@ -8,9 +8,18 @@
   IR radiation was received of the amount sent).
 
   Below demonstrates transmittance, and the exponential equation from my 
- sensor under such conditions.
+  sensor under such conditions.
 
- ZeroCalibrte(Range):   ****Unknown Affect - Caution****
+ Temperature Offset:
+  Orginaly this was tempeature to a higher decimal place, however my sensors
+  algorythm was broken from testing. Instead this appears to be an offset from 
+  24 C with decimal precision. So, it can  be used to calculate tempeature
+  to decimal precision and might provide help to those determine CO2 from Raw.
+
+ Temperature as Dec:
+  As mentioned above.
+
+ ZeroCalibrte(Range):   **Unknown Affect**
   The library uses the entered range to send an additional byte with the
   calibration command. The byte sent is matched as the closest to your 
   range, based on prior obserations in responses from the sesnor. 
@@ -48,7 +57,7 @@ void setup()
 
     myMHZ19.begin(mySerial);                                 // *Imporant, Pass your Stream reference
 
-    //myMHZ19.calibrateZero(2000);                             // Sends zero calibration with the corrasponding 2000 range byte, at byte 7.
+    //myMHZ19.calibrateZero(2000);  <-- use with caution     // Sends zero calibration with the corrasponding 2000 range byte, at byte 7.
 }
 
 void loop()
@@ -57,8 +66,14 @@ void loop()
     {
         Serial.println("------------------------------");
         Serial.print("Transmittance: ");
-        Serial.print(myMHZ19.getTransmittance(), 7);         // 7 decimals for float/double maximum accuracy
+        Serial.print(myMHZ19.getTransmittance(), 7);         // 7 decimals for float/double maximum Arduino accuracy
         Serial.println(" %");
+        Serial.print("Temp Offset: ");
+        Serial.print(myMHZ19.getTemperatureOffset, 2);
+        Serial.println(" C");
+        Serial.print("Temp Dec: ");
+        Serial.print(myMHZ19.getTemperature(true,true), 2); 
+        Serial.println(" C");
         getDataTimer = millis();
     }
 }

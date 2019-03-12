@@ -89,7 +89,7 @@ void loop()
         Serial.println(CO2);
 
         int8_t Temp;                           // Buffer for temperature
-        Temp = myMHZ19.getTemperature();      // Request Temperature (as Celsius)
+        Temp = myMHZ19.getTemperature();       // Request Temperature (as Celsius)
 
         Serial.print("Temperature (C): ");
         Serial.println(Temp);

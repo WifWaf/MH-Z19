@@ -94,7 +94,7 @@ void MHZ19::setSpan(int span)
 
 /*########################-Get Functions-##########################*/
 
-int MHZ19::getCO2(bool force, bool isunLimited)
+int MHZ19::getCO2(bool isunLimited, bool force)
 {
     if (isunLimited == true)
     {
@@ -149,34 +149,48 @@ float MHZ19::getTransmittance(bool force)
         return 0;
 }
 
-float MHZ19::getTemperature(bool force, bool isunLimited)
+float MHZ19::getTemperature(bool isDec, bool force)
 {
-    if (isunLimited == true)
+    if(isDec)
     {
-        if (force == true)
+        if(force)
             provisioning(TEMPUNLIM);
-
-        if (errorCode == RESULT_OK || force == false)
+        if(errorCode == RESULT_OK || force == false)
         {
-            /* Value appears to be for CO2 correction, unclear on consitent usage - default is now off*/
-
-            float calc = (((responseTEMPUNLIM[2] - 8) * 1500) + ((responseTEMPUNLIM[3] * 100) * 1 / 17));
-            calc /= 100;
-            return calc;
+           float buff = 24;
+           buff += getTemperatureOffset(false);
+           return buff;
         }
     }
-
-    else if (isunLimited == false)
+    
+    else if(!isDec)
     {
-        if (force == true)
-            provisioning(TEMPLIM);
+    if (force == true)
+        provisioning(TEMPLIM);
 
-        if (errorCode == RESULT_OK || force == false)
-            return (responseTEMPLIM[4] - 38);
+    if (errorCode == RESULT_OK || force == false)
+        return (responseTEMPLIM[4] - 38);
+    }
+    
+    return -273.15;    
+}
+ 
+float MHZ19::getTemperatureOffset(bool force)
+{
+     if (force == true)
+        provisioning(TEMPUNLIM);
+
+    if (errorCode == RESULT_OK || force == false)
+    {
+        /* Value appears to be for CO2 offset from 24C (useful for deriving CO2 from raw?) */
+
+        float calc = (((responseTEMPUNLIM[2] - 8) * 1500) + ((responseTEMPUNLIM[3] * 100) * 1 / 17));
+        calc /= 100;
+        return calc;
     }
 
     return -273.15;
-}
+} 
 
 int MHZ19::getRange()
 {
@@ -329,6 +343,10 @@ void MHZ19::stablise()
 
 void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
 {
+    ABCInterval = ABCPeriod;
+    ABCInterval /= 2;
+    ABCInterval *= 3.6e6;
+
     if (ABCPeriod && isON)
     {
         if(ABCPeriod >= 24)
@@ -340,10 +358,11 @@ void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
     else if (isON)
         ABCPeriod = 160;
  
-    ABCRepeat = !isON;
+    ABCRepeat = !isON;     
 
     provisioning(ABC, ABCPeriod);
 }
+
 void MHZ19::calibrateZero(int rangeCal)
 {
     if (rangeCal)
@@ -390,7 +409,7 @@ void MHZ19::recoveryReset()
     provisioning(RECOVER);
 }
 
-void MHZ19::printCommunication(bool isPrintComm, bool isDec)
+void MHZ19::printCommunication(bool isDec, bool isPrintComm)
 {
     _isDec = isDec;
     printcomm = isPrintComm;
@@ -400,9 +419,6 @@ void MHZ19::printCommunication(bool isPrintComm, bool isDec)
 
 void MHZ19::provisioning(Command_Type commandtype, int inData)
 {
-    /* Check if ABC_OFF needs to run */
-    ABCCheck();
-
     /* construct command */
     constructCommand(commandtype, inData);
 
@@ -411,6 +427,9 @@ void MHZ19::provisioning(Command_Type commandtype, int inData)
 
     /*return response */
     handleResponse(commandtype);
+
+    /* Check if ABC_OFF needs to run */
+    ABCCheck();
 }
 
 void MHZ19::constructCommand(Command_Type commandtype, int inData)
@@ -644,8 +663,9 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
 
 void MHZ19::ABCCheck()
 {
+    
     /* check timer interval if 12 hours have passed and if ABC_OFF was set to true */
-    if (((millis() - ABCRepeatTimer) >= (4.32e8)) && (ABCRepeat == true))
+    if (((millis() - ABCRepeatTimer) >= (ABCInterval)) && (ABCRepeat == true))
     {
         /* update timer inerval */
         ABCRepeatTimer = millis();

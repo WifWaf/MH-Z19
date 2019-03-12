@@ -23,7 +23,7 @@ void setup()
 
     myMHZ19.begin(mySerial);                                // *Important, Pass your Stream reference 
 
-    myMHZ19.autoCalibration();                              // Turn ABC ON. Disable with autoCalibration(false) (also default)
+    myMHZ19.autoCalibration();                              // Turn ABC ON. Disable with autoCalibration(false)
 }
 
 void loop()
@@ -37,8 +37,7 @@ void loop()
         Serial.println(CO2);                                
 
         int8_t Temp;                                         // Buffer for temperature
-        Temp = myMHZ19.getTemperature();                    // Request Temperature (as Celsius)
-
+        Temp = myMHZ19.getTemperature();                     // Request Temperature (as Celsius)
         Serial.print("Temperature (C): ");                  
         Serial.println(Temp);                               
 

@@ -44,6 +44,8 @@ void setup()
    Serial.println(myMHZ19.getBackgroundCO2());
    Serial.print("Temperature Cal: ");
    Serial.println(myMHZ19.getTempAdjustment());
+   Serial.print("Temperature Offset: ");
+   Serial.println(myMHZ19.getTemperatureOffset());
 }
 
 void loop()

@@ -127,9 +127,8 @@ SDA SDA 0xAE (1010 111X)
 class SC16IS750 : public Stream
 { 
     public:
-        SC16IS750(uint8_t prtcl = SC16IS750_PROTOCOL_I2C, uint8_t addr = SC16IS750_ADDRESS_AD);
-        void setI2CPin(uint8_t SDA, uint8_t SDL);
-        void begin(uint32_t baud);                               
+        SC16IS750(uint8_t prtcl = SC16IS750_PROTOCOL_I2C);
+        void begin(uint32_t baud, uint8_t SDA, uint8_t SDL, uint8_t addr = SC16IS750_ADDRESS_AD);                           
         int read();
         size_t write(uint8_t val);
         int available();
