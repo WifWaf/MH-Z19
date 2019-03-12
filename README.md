@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/Version-v1.3.6-green.svg)
+![Version](https://img.shields.io/badge/Version-v1.3.7-green.svg)
 
 > See extras for I2C version using the SC16IS750 UART bridge.
 
@@ -10,16 +10,18 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 
 |             Additions               |            Existing           |          Testing                  |
 |              :---:                  |              :---:            |          :---:                    |
-| CO2 Unlimited                       | CO2 Limited                   |     ^Transmittance (%)            |
-| CO2 as Raw                          | Temperature as Whole Integer  |  Zero Calibration (range byte)    |
-| CO2 via Analog Out (non-PWM)        | Request CO2 Calibration       |       Custom ABC                  |
-| Custom Range / Span                 | ABC On / Off                  |       Reset Sequence              |
-| Get Firmware Version                | Retrieve Accuracy             |     Temp @ 0.06C° Resolution      |
+| CO2 Unlimited                       | CO2 Limited                   |  Temp @ 0.06C° Resolution (fixed) |
+| CO2 as Raw                          | Temperature as Whole Integer  | ^Please test the above! See Experimental |
+| CO2 via Analog Out (non-PWM)        | Request CO2 Calibration       |                                   |
+| Custom Range / Span                 | ABC On / Off                  |  Custom ABC                       |
+| Reset Sensor                        | Retrieve Accuracy             |  Zero Calibration (range byte)   |
+| Get Firmware Version                |                               |     
 | Get Background CO2 Value            |                               |
 | Get Range Value                     |                               |
 | Get Last Response                   |                               |
+| Get Temperature Offset              |                               |
 | Print Comms (for debugging)         |
-
+| ^Transmittance (%)                  |
 
 ^*Transmittance is based upon the backwards projection of the raw value (which decreases with CO2) - see examples or [My Notes (Ravings?)](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
 
