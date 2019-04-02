@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.8
+  Version: 1.3.9
 
   License: GPL-3.0
 

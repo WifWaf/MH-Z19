@@ -1,4 +1,4 @@
-﻿![Version](https://img.shields.io/badge/Version-v1.3.8-green.svg)
+﻿![Version](https://img.shields.io/badge/Version-v1.3.9-green.svg)
 
 > See extras for I2C version using the SC16IS750 UART bridge.
 
