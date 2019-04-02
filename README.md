@@ -24,13 +24,14 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 | Request CO2 Calibration             | ABC On / Off                  |
 | Custom Range / Span                 | Retrieve Accuracy             |  Custom ABC                       |
 | Reset Sensor                        |                               |  Zero Calibration (range byte)   |
-| Get Temperature Offset (float)      |                               |
+| ^Get Temperature Offset (float)     |                               |
+| ^Get Temperature Adjustment         |                               |
 | Get Firmware Version                |                               |     
 | Get Background CO2 Value            |                               |
 | Get Range Value                     |                               |
 | Get Last Response                   |                               |
-
-
+>^* The difference here is that the offset is used against a value of 24C to obtain a float value of temperature. The adjustment
+is used to change the whole integer to a temperature value - unclear why. Note - the library uses 38 instead as 40 is incorrect.
 
 ### "Usage"
 ---
