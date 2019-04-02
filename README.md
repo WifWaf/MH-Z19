@@ -6,6 +6,15 @@
 
 A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlocks significant commands. Supports Hardware/Softeware serial and arduino based boads.
 
+### Features
+* Automatically sends autoclanration off command calculated upon period enetered.
+* Option to print communcation between device and sensor (for debugging)
+* Transmittance calculation % - when using 5v only power. 
+* CO2 via Analog Out (non-PWM) examples 
+
+>^*Transmittance is based upon the backwards projection of the raw value (which decreases with CO2) - see examples or [My Notes (Ravings?)](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
+
+### Commands
 ---
 
 |             Additions               |            Existing           |          Testing                  |
@@ -20,10 +29,8 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 | Get Background CO2 Value            |                               |
 | Get Range Value                     |                               |
 | Get Last Response                   |                               |
-| Print Comms (for debugging)         |
-| ^Transmittance (%)                  |
-| CO2 via Analog Out (non-PWM) 
-^*Transmittance is based upon the backwards projection of the raw value (which decreases with CO2) - see examples or [My Notes (Ravings?)](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
+
+
 
 ### "Usage"
 ---
