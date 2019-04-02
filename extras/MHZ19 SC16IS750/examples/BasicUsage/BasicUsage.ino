@@ -1,3 +1,8 @@
+/* 
+	To use, extract the folder extras folder MHZ19 SC16IS750 to a new folder in your libraries
+	folder. You will need to remove the MHZ19 folder and rename this new folder to the same name.
+*/
+
 #include <Arduino.h>
 #include "MHZ19.h"
 

@@ -41,12 +41,8 @@ void loop()
             Serial.print("CO2 PPM Unlim: ");
             Serial.println(CO2Unlimited);
 
-            Serial.print("CO2 PPM Unlim: ");
+            Serial.print("CO2 PPM Unlim: "); 
             Serial.println(CO2limited);
-
-            Serial.print("Temperature (C): ");
-            /* In testing - let me know if it works for you! */
-            Serial.println(myMHZ19.getTemperature(true, false)); // (request decimal value, new value request not needed !see request curbing)
 
             /* Command 134 is limited by background CO2 and your defined range. These thresholds can provide a software alarm */
 

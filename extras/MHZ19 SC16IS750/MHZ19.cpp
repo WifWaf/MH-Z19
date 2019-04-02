@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.7
+  Version: 1.3.8
 
   License: GPL-3.0
 
@@ -298,7 +298,7 @@ byte MHZ19::getLastResponse(byte bytenum)
 
 void MHZ19::stablise()
 {
-    uint8_t timeout = 0;
+    unsigned long timeStamp = millis();
 
     /* construct common command (133) */
     constructCommand(TEMPUNLIM);
@@ -307,9 +307,7 @@ void MHZ19::stablise()
 
     while (receiveResponse(responseTEMPUNLIM, TEMPUNLIM) != RESULT_OK)
     {
-        delay(WAIT_READ_DELAY);
-        timeout++;
-        if (timeout >= 50)
+        if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
         #ifdef ESP32
             ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor. Failed to stablise");
@@ -322,14 +320,14 @@ void MHZ19::stablise()
 
     /* construct last response command (162) */
     constructCommand(GETLASTRESP);
-
     write(constructedCommand);
+    
+    /* update timeStamp  for next comms iteration */ 
+    timeStamp = millis();
 
     while (receiveResponse(responseSTAT, GETLASTRESP) != RESULT_OK)
     {
-        delay(WAIT_READ_DELAY);
-        timeout++;
-        if (timeout >= 50)
+        if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
         #ifdef ESP32
             ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor. Failed to stablise");
@@ -563,7 +561,7 @@ void MHZ19::handleResponse(Command_Type commandtype)
 byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
 {
     /* loop escape */
-    byte TimeOut = 0;
+    unsigned long timeStamp = millis();
 
     /* prepare memory array with unsigned chars of 0 */
     memset(inBytes, 0, 9);
@@ -574,10 +572,7 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
     /* Read from SC16IS750 */
     while (i2cuart.available() == 0)
     {
-        delay(WAIT_READ_DELAY);
-
-        TimeOut++;
-        if (TimeOut >= 50)
+        if (millis() - timeStamp >= TIMEOUT_PERIOD) 
         {
         #ifdef ESP32
             ESP_LOGW(TAG_MHZ19, "Timed out waiting for response");

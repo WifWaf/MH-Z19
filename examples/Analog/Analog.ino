@@ -1,11 +1,14 @@
-
 /* 
-   Note, mV to PPM only works for a range of 2000.
-   Please see ESP32's AnalgOutSoftCal.cpp for other ranges.
+   *Note: This is specific to the range you choose. 
+   *Note: Below example will not be accurate. 
 
    The analog output is located on the brown wire on the JST     
    version. On the non-JST version it can be found on the far 
-   side, beside the Rx pin.
+   side, beside the Rx pin. 
+
+   Step 1: Take CO2 record CO2 ppm and analog values over a range of CO2 values
+   Setp 2: Generated an equation based upon the trend (I.e. y=mx+c (linear) or log)
+   setp 3: Replace analog reading with x. 
 */
 
 /*MHZ19 Library not Required*/
@@ -13,7 +16,7 @@
 #include <Arduino.h>
 
 #define ANALOGPIN A0                                          // ADC pin which the brown wire is attached to
-
+ 
 unsigned long myMHZ19Timer = 0;                            
 
 void setup()
@@ -22,22 +25,23 @@ void setup()
     pinMode(ANALOGPIN, INPUT_PULLUP);                         // Pullup A0
 
     Serial.print("\nUsing Pin: ");                            // Print Raw Pin Number
-    Serial.println(ANALOGPIN);                                      
+    Serial.println(ANALOGPIN);
+                                          
 }
 
 void loop()
 {
     if (millis() - myMHZ19Timer >= 2000)                      
     {
-        Serial.println("-----------------");
+        Serial.println("-----------------"); 
 
-        float ADCReading = analogRead(ANALOGPIN);              // Get analog value
-        
-        Serial.print("ADC Raw: ");                             // Print Raw ADC Value
-        Serial.println(ADCReading);  
+        float adjustedADC = analogRead(A0);                 
+        Serial.print("Analog raw: ");
+        Serial.println(adjustedADC);
 
-        Serial.print("ADC mV/ppm: ");                          // Convert accrording to 5000 mV/1023 units, 1023 = 12-bit. 
-        Serial.println(ADCReading*4.8875855);                  // "Floats have only 6-7 decimal digits of precision"
+        adjustedADC = 6.4995*adjustedADC - 590.53; // format; y=mx+c
+        Serial.print("Analog CO2: ");      
+        Serial.println(adjustedADC); 
                                                                 
         myMHZ19Timer = millis();                              
     }

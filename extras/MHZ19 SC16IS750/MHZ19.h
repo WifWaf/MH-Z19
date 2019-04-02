@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.7
+  Version: 1.3.8
 
   License: GPL-3.0
 
@@ -22,8 +22,8 @@
 
 #include <Arduino.h>
 
-/* time out delay */
-#define WAIT_READ_DELAY 100
+/* time out period for comms */ 
+#define TIMEOUT_PERIOD 500 // ms 
 
 /* native to the sensor */ //do not change these unless you are sure on the result
 #define SCONFIG SERIAL_8N1
@@ -108,7 +108,7 @@ class MHZ19
 	/* reads range using command 153 */
 	int getRange();
 
-	/* not yet implamented */
+	/* Returns accuracy value if available */
 	byte getAccuracy(bool force = true);
 
 	/* not yet implamented */

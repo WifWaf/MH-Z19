@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.7
+  Version: 1.3.8
 
   License: GPL-3.0
 
@@ -26,8 +26,8 @@
 #include "esp32-hal-log.h"
 #endif
 
-/* time out delay */
-#define WAIT_READ_DELAY 100
+/* time out period for response */
+#define TIMEOUT_PERIOD 500   // (ms)
 
 /* For range mode,  */
 #define DEFAULT_RANGE 2000 // MH-Z19 works best in this range
@@ -105,7 +105,7 @@ class MHZ19
 	/* reads range using command 153 */
 	int getRange();
 
-	/* not yet implamented */
+	/* Returns accuracy value if available */
 	byte getAccuracy(bool force = true);
 
 	/* not yet implamented */

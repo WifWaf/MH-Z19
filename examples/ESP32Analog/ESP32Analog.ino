@@ -1,65 +1,71 @@
 /* 
-   !Note, mV to PPM only works for a range of 2000.
-   Please see AnalgOutSoftCal.cpp for other ranges or 
-   increased accuracy.
-   
+   *Note: This is specific to the range you choose. 
+   *Note: Below example will not be accurate. 
+
    The analog output is located on the brown wire on the JST     
    version. On the non-JST version it can be found on the far 
-   side, beside the Rx pin.
-   
-   To get a better conversion between bit-rate to mV, the
-   esp_adc_cal.h header is used which provides support
-   for conversion. See the header file for an explanation of 
-   the function parameters.
-   
-   You can further increase accuracy by adjusting efuses after 
-   taking various voltage measurements. See espressif API document
-   titled "Analog to Digital Converter. *
-   
-   Alternatively, see AnalogOutSoftCall.cpp for a "soft" calibration.
+   side, beside the Rx pin. 
+
+   Step 1: Take CO2 record CO2 ppm and analog values over a range of CO2 values
+   Setp 2: Generated an equation based upon the trend (I.e. y=mx+c (linear) or log)
+   setp 3: Replace analog reading with x.  
 */
 
-/*MHZ19 Library not Required*/
-#include <esp_adc_cal.h>                                                            // For ADC Conversion
-#include <Arduino.h>
+/* MH-Z19 Library Not Required  */                                                           
+#include <driver/adc.h>                                                  // For ADC Conversion
+#include <Arduino.h>                                                     
 
-esp_adc_cal_characteristics_t characteristics;                                      // Holds ADC characteristics from esp_adc_cal_characterize
+#define ANALOGPIN ADC1_CHANNEL_5,                                        // ADC1_CHANNEL_5 is GPIO33 @ <driver/adc.h> (locate GPIO alias in header)                                      
 
-unsigned long myMHZ19Timer = 0;                                                     
+unsigned long myMHZ19Timer = 0;                                        
 
 void setup()
-{
-    Serial.begin(115200);
- 
-    pinMode(33, PULLUP);                                                            // Pullup GPIO33
+{   
+  Serial.begin(115200);                                   
+   
+  pinMode(33, PULLUP);                                                   // Pullup GPIO33
+  
+  gpio_num_t adcpin;                                                     // Buffer to hold GPIO number
+  adc1_pad_get_io_num(ADC1_CHANNEL_5, &adcpin);                          // Occupies buffer with GPIO number
 
-    gpio_num_t ADCPin;                                                              // Holds GPIO pin from adc1_pad_get_io_num
-    adc1_pad_get_io_num(ADC1_CHANNEL_5, &ADCPin);                                   // Occupies ADCPin with GPIO number
+  Serial.print("\nUsing GPIO: ");                                        // Print GPIO number to which the ADC is attached
+  Serial.println(adcpin);                                                // Print GPIO number to which the ADC is attached
 
-    Serial.print("\nUsing GPIO: ");                                                 // Print GPIO number to which the ADC is attached
-    Serial.println(ADCPin);                                                         // Print GPIO number to which the ADC is attached
-
-    esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 1109, &characteristics); // Occupies characteristics with ADC parameters
+  adc1_config_width(ADC_WIDTH_BIT_12);                                         // According to <driver/adc.h>
+  adc1_config_channel_atten(ADC1_CHANNEL_5, ADC_ATTEN_DB_11);                  // According to <driver/adc.h>
 }
 
 void loop()
-{
-    if (millis() - myMHZ19Timer >= 2000)                                            
-    {
-        adc1_config_width(ADC_WIDTH_BIT_12);                                         // According to <driver/adc.h>
-        adc1_config_channel_atten(ADC1_CHANNEL_5, ADC_ATTEN_DB_11);                  // According to <driver/adc.h>
+{  
+  if (millis() - myMHZ19Timer >= 2000)                                 
+  {
+    static int AnalogCO2PPM = 0;
 
-        uint32_t ADC12Bit = adc1_get_raw(ADC1_CHANNEL_5);                            // Record ADC 12bit raw value
+    AnalogCO2PPM = adc1_get_raw(ADC1_CHANNEL_5);                         // Record ADC conversion
+    
+    Serial.println("-----------------"); 
+    Serial.print("Analog Raw: ");                                        // Print raw value to serial
+    Serial.println(AnalogCO2PPM);                                        // Print raw value to serial
+         
+    /* 
+      The 12-bit ADC, values in my case started at 320 (400ppm) and 
+      ended at  2320 (2000ppm). 
+     
+      Plotting values in-between, produces the strong linear trend: 
+      "y = 8.04917E-1x + 1.37594E+2". This is multiplied as decimal
+      places are not required.
+     
+      As analog signal is the product of the command 134 (0x86), 
+      and hence is also floored and capped by the MHZ19 on board 
+      range value. 
+    */   
+ 
+    AnalogCO2PPM = ((8.04917e+5 * AnalogCO2PPM) + 1.37594e+8);            // Equation for relationship, multiplied by 10^6
+    AnalogCO2PPM = (AnalogCO2PPM / 1000000);                              // Value divided by 10^6 (float is unnecessary)
+                                                 
+    Serial.print("Analog CO2: ");                                         // Print ppm value to serial
+    Serial.println(AnalogCO2PPM);                                         // Print ppm value to serial
 
-        Serial.println("-----------------");
-        Serial.print("Analog Raw: ");                                                 // Print ADC 12bit raw value to serial
-        Serial.println(ADC12Bit);                                                     // Print ADC 12bit raw value to serial
-
-        uint32_t ADCVoltage = esp_adc_cal_raw_to_voltage(ADC12Bit, &characteristics); // Convert ADC12Bit to ADCVoltage
-
-        Serial.print("CO2 ppm(mV): ");                                                // Print mV (equivilant to ppm) to serial
-        Serial.println(ADCVoltage);                                                   // Print mV (equivilant to ppm) to serial
-
-        myMHZ19Timer = millis();                                                     
-    }
+    myMHZ19Timer = millis();                                             
+  }
 }
