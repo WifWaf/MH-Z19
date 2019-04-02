@@ -7,7 +7,7 @@
 A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlocks significant commands. Supports Hardware/Softeware serial and arduino based boads.
 
 ### Features
-* Automatically sends autoclanration off command calculated upon period enetered.
+* Automatically sends "autocalibration off" command calculated upon period enetered.
 * Option to print communcation between device and sensor (for debugging)
 * Transmittance calculation % - when using 5v only power. 
 * CO2 via Analog Out (non-PWM) examples 
