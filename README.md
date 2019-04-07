@@ -11,6 +11,7 @@ A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlo
 * Option to print communcation between device and sensor (for debugging)
 * Transmittance calculation % - when using 5v only power. 
 * CO2 via Analog Out (non-PWM) examples 
+* Filter mode, to detect invalid readings when sensor is recovering from power loss / boot (see example)
 
 >^*Transmittance is based upon the backwards projection of the raw value (which decreases with CO2) - see examples or [My Notes (Ravings?)](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
 
