@@ -1,13 +1,14 @@
 #include <Arduino.h>
 #include "MHZ19.h"                        
-#include <SoftwareSerial.h>                 //  <--- Remove if using HardwareSerial / ESP32
- 
+#include <SoftwareSerial.h>                               //  Remove if using HardwareSerial or non-uno compatabile device
+
 #define RX_PIN 10 
 #define TX_PIN 11 
-#define BAUDRATE 9600                       // Native to the sensor (do not change)
+#define BAUDRATE 9600                                     // Native to the sensor (do not change)
 
 MHZ19 myMHZ19;
-SoftwareSerial mySerial(RX_PIN, TX_PIN);
+SoftwareSerial mySerial(RX_PIN, TX_PIN);                  // Uno example
+//HardwareSerial mySerial(1);                             // ESP32 Example
 
 unsigned long getDataTimer = 0;
 
@@ -15,11 +16,13 @@ void setup()
 {
     Serial.begin(9600);  
    
-    mySerial.begin(BAUDRATE);              
+    mySerial.begin(BAUDRATE);                               // Uno example: Begin Stream with MHZ19 baudrate
 
-    myMHZ19.begin(mySerial);                // *Imporant, Pass your Stream reference here
+  //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);   // ESP32 Example
 
-    myMHZ19.autoCalibration(false);         // Turn ABC OFF
+    myMHZ19.begin(mySerial);                // *Important, Pass your Stream reference here
+
+    myMHZ19.autoCalibration(false);         // Turn auto calibration OFF
 }
 
 void loop()
@@ -41,7 +44,7 @@ void loop()
             Serial.print("CO2 PPM Unlim: ");
             Serial.println(CO2Unlimited);
 
-            Serial.print("CO2 PPM Unlim: "); 
+            Serial.print("CO2 PPM Lim: "); 
             Serial.println(CO2limited);
 
             /* Command 134 is limited by background CO2 and your defined range. These thresholds can provide a software alarm */

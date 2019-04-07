@@ -1,35 +1,51 @@
 /* 
-    !NOTE - the order of functions is important for correct
+    NOTE - the order of functions is important for correct
     calibration.
     
-    This is an example of a calibration sequence works.Details 
-    are given on how to use each library function.    
+    HOW TO USE:
+    Where other CO2 sensors require an nitrogen atmosphere to "zero"
+    the sensor CO2 reference, the MHZ19 "zero" (confusingly) refers to the 
+    background CO2 level hardcoded into the device at 400ppm (getBackgroundCO2() 
+    sends a command to the device to retrieve the value);
+
+    The best start for your sensor is to wait till CO2 values are as close to background
+    levels as possible (currently an average of ~418ppm). Usually at night time and outside 
+    if possible, otherwise when the house has been unoccupied for as long as possible such.
+
+    If you are using auto calibration, the sensor will adjust its self every 24 hours
+    (note here, the auto calibration algorithm uses the lowest observe CO2 value
+    for that set of 24 hours as the zero - so, if your device is under an environment
+    which does not fall to these levels, consider turning this off in your setup code). 
+    
+    If autoCalibration is set to "false", then getting the background calibration levels 
+    correct at first try is essential.
+
+    This is an example of the calibration sequence. Details are given on how to use each library 
+    function. See main readme for more information.
 */
 
 #include <Arduino.h>
-#include "MHZ19.h"                                         // include main library
-#include <SoftwareSerial.h>                                // Remove if using HardwareSerial
+#include "MHZ19.h" 
+#include <SoftwareSerial.h>                                // Remove if using HardwareSerial or non-uno library compatable device
 
-#define RX_PIN 10                                          // Rx pin which the MHZ19 Tx pin is attached to
-#define TX_PIN 11                                          // Tx pin which the MHZ19 Rx pin is attached to
+#define RX_PIN 10                                          
+#define TX_PIN 11                                          
 #define BAUDRATE 9600                                      // Native to the sensor (do not change)
 
-MHZ19 myMHZ19;                                             // Constructor for MH-Z19 class
-SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // Constructor for Stream class *change for HardwareSerial, i.e. ESP32 ***
+MHZ19 myMHZ19;
+SoftwareSerial mySerial(RX_PIN, TX_PIN);    // Uno example
+//HardwareSerial mySerial(1);               // ESP32 Example
 
-//HardwareSerial mySerial(1);                              // ESP32 Example 
+unsigned long getDataTimer = 0;
 
-unsigned long getDataTimer = 0;                             // Variable to store timer interval
-
-void verifyRange(int range);                                // Forward Decleration for Non-IDE Environment
+void verifyRange(int range);
 
 void setup()
 {
     Serial.begin(9600);
 
-    mySerial.begin(BAUDRATE);                               // Begin Stream with MHZ19 baudrate
-
-    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example 
+    mySerial.begin(BAUDRATE);                                    // Uno example: Begin Stream with MHZ19 baudrate
+    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);      // ESP32 Example
 
     myMHZ19.begin(mySerial);                                // *Important, Pass your Stream reference
 
@@ -103,7 +119,7 @@ void verifyRange(int range)
 
     myMHZ19.setRange(range);                             // request new range write
 
-    if (myMHZ19.getRange() == range)                     // This checks the MH-Z19 onboard value to see if it's updated.
+    if (myMHZ19.getRange() == range)                     // Send command to device to return it's range value.
         Serial.println("Range successfully applied.");   // Success
 
     else

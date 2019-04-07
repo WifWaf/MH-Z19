@@ -6,9 +6,9 @@
    version. On the non-JST version it can be found on the far 
    side, beside the Rx pin. 
 
-   Step 1: Take CO2 record CO2 ppm and analog values over a range of CO2 values
-   Setp 2: Generated an equation based upon the trend (I.e. y=mx+c (linear) or log)
-   setp 3: Replace analog reading with x. 
+   Step 1: Record CO2 ppm and analog values at frequent intervals over your MHZ19 range (i.e. 2000 is default)
+   Setp 2: Generated an equation based upon the trend (I.e. y=mx+c (linear), log etc)
+   setp 3: Replace analog reading with x within the equation. 
 */
 
 /*MHZ19 Library not Required*/

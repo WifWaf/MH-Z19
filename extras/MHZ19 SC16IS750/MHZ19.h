@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.8
+  Version: 1.4.1
 
   License: GPL-3.0
 
@@ -19,6 +19,8 @@
 
 #ifndef MHZ19_H
 #define MHZ19_H
+
+#define MHZ19_ERRORS 1  // Set to 0 to disable error prints
 
 #include <Arduino.h>
 
@@ -40,7 +42,8 @@ enum ERRORCODE
 	RESULT_ERR_TIMEOUT = 2,
 	RESULT_ERR_MATCH = 3,
 	RESULT_ERR_CRC = 4,
-	RESULT_FAILED = 5,
+	RESULT_ERR_FILTER = 5,
+	RESULT_FAILED = 6
 };
 
 /* alias from command type */
@@ -88,6 +91,9 @@ class MHZ19
 	/* Sets Span to desired value below 10,000*/
 	void setSpan(int span = 2000);
 
+	/* Sets "filter mode" to ON or OFF (see example) */
+	void setFilter(bool isON = true);
+
 	/*########################-Get Functions-##########################*/
 
 	/* request CO2 values, 2 types of CO2 can be returned, isLimted = true (command 134) and is Limited = false (command 133) */
@@ -102,7 +108,7 @@ class MHZ19
 	/*  returns temperature using command 134 or 135 if isDec = true */
 	float getTemperature(bool isDec = false, bool force = true);
 	
-	/* Returns what appears to be an offset */ //<----- knowledgable people might know if this can be used with raw value
+	/* Returns what appears to be an offset */ //<----- knowledgable people might have success the raw value
 	float getTemperatureOffset(bool force = true); 
 
 	/* reads range using command 153 */
@@ -150,7 +156,10 @@ class MHZ19
 
 	/* A flag which represents whether autocalibration abcperiod is checked */
 	bool ABCRepeat = false;
-	  
+
+	/* Flag set by setFilter() to signify is "filter mode" was made active */
+	bool filterMode = false; 
+
 	/* Holds interval for turning autocalibration off periodicaly */
 	unsigned long ABCInterval = 4.32e7;
 
@@ -197,6 +206,6 @@ class MHZ19
 	void int2bytes(int inInt, byte *high, byte *low);
 
 	/* converts bytes to integers according to *256 and + value */
-	uint16_t bytes2int(byte high, byte low);
+	unsigned int bytes2int(byte high, byte low);
 };
 #endif

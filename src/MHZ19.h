@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.9
+  Version: 1.4.1
 
   License: GPL-3.0
 
@@ -26,11 +26,13 @@
 #include "esp32-hal-log.h"
 #endif
 
+#define MHZ19_ERRORS 1			   // Set to 0 to disable error prints
+
 /* time out period for response */
-#define TIMEOUT_PERIOD 500   // (ms)
+#define TIMEOUT_PERIOD 500     // (ms)
 
 /* For range mode,  */
-#define DEFAULT_RANGE 2000 // MH-Z19 works best in this range
+#define DEFAULT_RANGE 2000      // MH-Z19 works best in this range
 
 /* holding verification result from response */
 enum ERRORCODE
@@ -40,7 +42,8 @@ enum ERRORCODE
 	RESULT_ERR_TIMEOUT = 2,
 	RESULT_ERR_MATCH = 3,
 	RESULT_ERR_CRC = 4,
-	RESULT_FAILED = 5
+	RESULT_ERR_FILTER = 5,
+	RESULT_FAILED = 6
 };
 
 /* alias from command type */
@@ -85,6 +88,9 @@ class MHZ19
 	/* Sets Span to desired value below 10,000*/
 	void setSpan(int span = 2000);
 
+  /* Sets "filter mode" to ON or OFF (see example) */
+	void setFilter(bool isON = true);
+ 
 	/*########################-Get Functions-##########################*/
 
 	/* request CO2 values, 2 types of CO2 can be returned, isLimted = true (command 134) and is Limited = false (command 133) */
@@ -134,7 +140,7 @@ class MHZ19
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
 	void calibrateZero(int rangeCal = 0);
 
-	/* requests a reset, this also rests Zero and Span */
+	/* requests a reset */
 	void recoveryReset();
 
 	/* use to show communication between MHZ19 and  Device */
@@ -144,10 +150,13 @@ class MHZ19
 	/*###########################-Variables-##########################*/
      
 	/* pointer for Stream class to accept refernce for hardware and software ports */
-    Stream* mySerial; 
+  Stream* mySerial; 
 
 	/* A flag which represents whether autocalibration abcperiod is checked */
 	bool ABCRepeat = false; 
+
+	/* Flag set by setFilter() to signify is "filter mode" was made active */
+	bool filterMode = false; 
   
 	/* Holds interval for turning autocalibration off periodicaly */
 	unsigned long ABCInterval = 4.32e7;
@@ -195,6 +204,6 @@ class MHZ19
 	void int2bytes(int inInt, byte *high, byte *low);
 
 	/* converts bytes to integers according to *256 and + value */
-	uint16_t bytes2int(byte high, byte low);
+	unsigned int bytes2int(byte high, byte low);
 };
 #endif

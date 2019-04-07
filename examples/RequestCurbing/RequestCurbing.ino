@@ -41,25 +41,25 @@
 
 #include <Arduino.h>
 #include "MHZ19.h"
-#include <SoftwareSerial.h>                                // Remove if using HardwareSerial                                                                   
+#include <SoftwareSerial.h>                                //  Remove if using HardwareSerial or non-uno compatabile device
 
-#define RX_PIN 10                                          // Rx pin which the MHZ19 Tx pin is attached to
-#define TX_PIN 11                                          // Tx pin which the MHZ19 Rx pin is attached to
+#define RX_PIN 10                                         
+#define TX_PIN 11                                        
 #define BAUDRATE 9600                                      // Native to the sensor (do not change)
 
-MHZ19 myMHZ19;                                             // Constructor for MH-Z19 class
-SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // Constructor for Stream class *change for HardwareSerial, i.e. ESP32 ***
+MHZ19 myMHZ19;                                             
+SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // Uno example,
+//HardwareSerial mySerial(1);                              // ESP32 Example
 
-//HardwareSerial mySerial(1);                              // ESP32 Example 
 unsigned long getDataTimer = 0;                                                        
 
 void setup()
 {
     Serial.begin(9600);
 
-    mySerial.begin(BAUDRATE);                               // Begin Stream with MHZ19 baudrate
+    mySerial.begin(BAUDRATE);                               // Uno example: Begin Stream with MHZ19 baudrate
 
-    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example 
+    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example
 
     myMHZ19.begin(mySerial);                                // *Important, Pass your Stream reference
  
@@ -71,21 +71,35 @@ void setup()
 
 void loop()
 {
-    if (millis() - getDataTimer >= 2000)                                 // Check if interval has elapsed
+    if (millis() - getDataTimer >= 5000)                                // Check if interval has elapsed
     {
         
-       /* both share command  133 */
+        Serial.println("\n**** Unlimited CO2 ****");
+
+       /* both printed under unlimited CO2 share command  133 */
+        int CO2Unlim = myMHZ19.getCO2(true, true);
         Serial.print("CO2 (ppm): ");
-        Serial.println(myMHZ19.getCO2(true, true));                       // unlimimted value, new request
+        Serial.println(CO2Unlim);                                        // unlimimted value, new request
+
+        /*  The below command is not currently working, so please ignore the value if it is wrong for your sensor.
+            A more compatable command will be implimented at a later time
+        */
+        float CO2UnlimTemp = myMHZ19.getTemperature(true, false);
         Serial.print("Temperature (C): ");                             
-        Serial.println(myMHZ19.getTemperature(true, false));              // decimal value, not new request                     
-        
-       /* both share command  134 */
-        Serial.print("CO2 (ppm): ");
-        Serial.println(myMHZ19.getCO2(false, true));                      // limimted value, new request
+        Serial.println(CO2UnlimTemp);                                    // decimal value, not new request 
+
+        Serial.println("\n**** Limited CO2 ****");   
+
+       /* both printed under limited CO2 share command  134 */
+        int CO2Lim = myMHZ19.getCO2(false, true);                        // limimted value, new request
+        Serial.print("CO2 (ppm): "); 
+        Serial.println(CO2Lim);                     
+      
+        int CO2limTemp = myMHZ19.getTemperature(false, false);          // non decimal palce value. Not a new request 
         Serial.print("Temperature (C): ");                                            
-        Serial.println(myMHZ19.getTemperature(false, false));             // whole integer value, not new request 
-                
+        Serial.println(CO2limTemp);                                       
+        Serial.println("-----------------------------------"); 
+
         getDataTimer = millis();                                                      
     }                                                                               
 }   

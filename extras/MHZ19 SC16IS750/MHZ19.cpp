@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.3.8
+  Version: 1.4.1
 
   License: GPL-3.0
 
@@ -55,9 +55,9 @@ void MHZ19::begin()
 
     if (i2cuart.ping() != 1)
     {
-    #ifdef ESP32
+    #if defined (ESP32) && (MHZ19_ERRORS)
         ESP_LOGE(TAG_MHZ19, "SC16IS750 bridge not found");
-    #else
+    #elif MHZ19_ERRORS
         Serial.println("!ERROR: SC16IS750 bridge not found");
     #endif
     }
@@ -68,9 +68,9 @@ void MHZ19::begin()
     /* check if successful */
     if (errorCode != RESULT_OK)
     {
-    #ifdef ESP32
+        #if defined (ESP32) && (MHZ19_ERRORS)
         ESP_LOGE(TAG_MHZ19, "Initial communication errorCode recieved");
-    #else
+     #elif MHZ19_ERRORS
         Serial.println("!ERROR: Initial communication errorCode recieved");
     #endif
     }
@@ -82,9 +82,9 @@ void MHZ19::setRange(int range)
 {
     if (range > 65000)
     {
-    #ifdef ESP32
+        #if defined (ESP32) && (MHZ19_ERRORS)
         ESP_LOGE(TAG_MHZ19, "Invalid Range value (0 - 65000)");
-    #else
+     #elif MHZ19_ERRORS
         Serial.println("!ERROR: Invalid Range value (0 - 65000)");
     #endif
         return;
@@ -98,9 +98,9 @@ void MHZ19::setSpan(int span)
 {
     if (span > 10000)
     {
-    #ifdef ESP32
+        #if defined (ESP32) && (MHZ19_ERRORS)
         ESP_LOGE(TAG_MHZ19, "Invalid Span value (0 - 10000)");
-    #else
+     #elif MHZ19_ERRORS
         Serial.println("!ERROR: Invalid Span value (0 - 10000)");
     #endif
     }
@@ -110,32 +110,79 @@ void MHZ19::setSpan(int span)
     return;
 }
 
+void MHZ19::setFilter(bool isON)
+{
+    this->filterMode = isON;
+}
+
 /*########################-Get Functions-##########################*/
 
 int MHZ19::getCO2(bool isunLimited, bool force)
 {
-    if (isunLimited == true)
+    if (force == true)
     {
-        if (force == true)
+        if(isunLimited)
             provisioning(TEMPUNLIM);
-
-        if (errorCode == RESULT_OK || force == false)
-        {
-            return (int)bytes2int(responseTEMPUNLIM[4], responseTEMPUNLIM[5]);
-        }
-    }
-
-    else if (isunLimited == false)
-    {
-        if (force == true)
+        else
             provisioning(TEMPLIM);
+     }
 
-        if (errorCode == RESULT_OK || force == false)
+    if (errorCode == RESULT_OK || force == false)
+    {
+        if (!this->filterMode)
         {
-            return (int)bytes2int(responseTEMPLIM[2], responseTEMPLIM[3]);
-        }
-    }
+            unsigned int validRead = 0;
 
+            if(isunLimited)              
+                validRead = bytes2int(responseTEMPUNLIM[4], responseTEMPUNLIM[5]);
+            else
+                validRead = bytes2int(responseTEMPLIM[2], responseTEMPLIM[3]);
+
+            if(validRead > 32767)
+                validRead = 32767;  // Set to maximum to stop negative values being return due to overflow
+
+            else
+                 return validRead;   
+        }
+        else
+        {
+           /* FILTER BEGIN ----------------------------------------------------------- */
+            unsigned int checkVal[2];
+            bool trigFilter = false;
+
+            if(!isunLimited)                    // Filter was must call the opposest limited command to work
+                provisioning(TEMPUNLIM);
+            else
+                provisioning(TEMPLIM);
+            
+            checkVal[0] = bytes2int(responseTEMPUNLIM[4], responseTEMPUNLIM[5]); 
+            checkVal[1] = bytes2int(responseTEMPLIM[2], responseTEMPLIM[3]);
+            
+            if(checkVal[0] > 32767)             // Is value larger than int? Occurs shortly after rest. 
+            {
+                checkVal[0] = 32767;            // Set to maximum to avoid returning negative overflow.
+                trigFilter = true;
+            }
+
+            if(checkVal[1] > 32767)
+            {
+                checkVal[0] = 32767;
+                trigFilter = true;
+            }
+
+            if(((checkVal[0] - checkVal[1]) >= 10) && checkVal[1] == 410)   // Limited stays at 410ppm, so compare unlimited which is
+                trigFilter = true;                                          // is an abormal value. Limited CO2 ppm returns to "normal"
+                                                                            // after reset.
+            if(trigFilter)              
+                errorCode = RESULT_ERR_FILTER;
+
+            if(isunLimited)       
+                return checkVal[0];
+            else
+                return checkVal[1];   
+            /* FILTER END ----------------------------------------------------------- */             
+        }              
+    }
     return 0;
 }
 
@@ -160,7 +207,7 @@ float MHZ19::getTransmittance(bool force)
     {
         float calc = (float)bytes2int((responseRAW[2]), responseRAW[3]);
 
-        return (calc * 100 / 35000); //  (calc * topercent / Raw set point High)
+        return (calc * 100 / 35000); //  (calc * to percent / x(raw) zero)
     }
 
     else
@@ -309,16 +356,16 @@ void MHZ19::stablise()
     {
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
-        #ifdef ESP32
+            #if defined (ESP32) && (MHZ19_ERRORS)
             ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor. Failed to stablise");
-        #else
+         #elif MHZ19_ERRORS
             Serial.println("!ERROR: Failed to verify connection(1) to sensor. Failed to stablise");
         #endif
             return;
         }
     }
 
-    /* construct last response command (162) */
+    /* construct & write last response command (162) */
     constructCommand(GETLASTRESP);
     write(constructedCommand);
     
@@ -329,9 +376,9 @@ void MHZ19::stablise()
     {
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
-        #ifdef ESP32
+            #if defined (ESP32) && (MHZ19_ERRORS)
             ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor. Failed to stablise");
-        #else
+         #elif MHZ19_ERRORS
             Serial.println("!ERROR: Failed to verify connection(2) to sensor. Failed to stablise");
         #endif
 
@@ -344,9 +391,9 @@ void MHZ19::stablise()
     {
         if (responseTEMPUNLIM[i] != responseSTAT[i])
         {
-        #ifdef ESP32
+            #if defined (ESP32) && (MHZ19_ERRORS)
             ESP_LOGE(TAG_MHZ19, "Last response was not found, call back failed. Failed to stablise");
-        #else
+         #elif MHZ19_ERRORS
             Serial.println("!ERROR: Last response was not found, call back failed. Failed to stablise");
         #endif
 
@@ -574,9 +621,9 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
     {
         if (millis() - timeStamp >= TIMEOUT_PERIOD) 
         {
-        #ifdef ESP32
+            #if defined (ESP32) && (MHZ19_ERRORS)
             ESP_LOGW(TAG_MHZ19, "Timed out waiting for response");
-        #else
+         #elif MHZ19_ERRORS
             Serial.println("!Warning: Timed out waiting for response");
         #endif
 
@@ -619,7 +666,7 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
 void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
 {
    
-    #ifdef ESP32      
+    #if defined (ESP32) && (MHZ19_ERRORS)      
     if (pserrorCode != RESULT_OK && isSent == false)
     {
         if (_isDec)
@@ -631,7 +678,6 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
                      inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8],
                      pserrorCode);
     }
-
     else
     {
         if (_isDec)
@@ -643,7 +689,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
                      inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8]);
     }
      
-    #else
+    #elif MHZ19_ERRORS
     if (pserrorCode != RESULT_OK && isSent == false)
     {
         Serial.print("Recieved >> ");
@@ -730,9 +776,9 @@ void MHZ19::int2bytes(int inInt, byte *high, byte *low)
     return;
 }
 
-uint16_t MHZ19::bytes2int(byte high, byte low)
+unsigned int MHZ19::bytes2int(byte high, byte low)
 {
-    uint16_t calc = ((uint16_t)high * 256) + (uint16_t)low;
+    unsigned int calc = ((unsigned int)high * 256) + (unsigned int)low;
 
     return calc;
 }
