@@ -81,7 +81,7 @@ void setup()
 
     /*            ###autoCalibration(false)###  
        Basic:
-       autoCalibration(false) - turns auto calibration OFF. (automatically sent every 12 hours)
+       autoCalibration(false) - turns auto calibration OFF. (automatically sent before defined period elapses)
        autoCalibration(true)  - turns auto calibration ON.
        autoCalibration()      - turns auto calibration ON.
 

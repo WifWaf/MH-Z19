@@ -1,22 +1,22 @@
 /*
-    Example showing how to use "filter mode".
+    Filter mode is useful if you are displaying in a graph or stastical analyses.
 
-    Filter mode is useful if you are sending data to be stored and analysed such as 
-    for a graphical display. Invalid readings produced by a reset and/or power loss
-    to the sensor do not return invalid CRC values, and so will still return values
-    despite being abnormal/false.
+    When the sensor is reset, reading the CO2 value for around 30 seconds will produce inaccurate results
+    while the IR sensor warms. The filter can behave in one of two ways:
     
-    The down side to this command is that an additional command is sent on each request as opposed
-    to a single (for nearly all applications, this is no problem).
-    
-    To use filter mode, you must enable it with setFilter(true) (note; it will not return a code otherwise) 
-    to check the errorCode to see if the filter was triggered during the getCO2 command phase and 
-    ignore the next result . 
+    Mode 1)  myMHZ19.setFilter(true, true) (default)        <-- you can simply use setFilter() here;
 
-    The result is available by reading the function as normal, so you may store the value to check 
-    for yourself at a later time.
+    Values are filtered, and returned value is set to 0. An "errorCode" is set.
 
-    Below demonstrates the usuage:
+    Mode 2)  myMHZ19.setFilter(true, false)
+
+    Values are not filtered but constrained if out of variable range. You must manually use the
+    errorCode to complete the "filter". 
+
+    (note, the down side to the filter is that an additional command is sent on each request. 
+    For most applications, this is no problem).
+
+    * Uncomment / comment out one of the two examples below*
 */
 
 #include <Arduino.h>
@@ -29,7 +29,6 @@
 
 MHZ19 myMHZ19;
 SoftwareSerial mySerial(RX_PIN, TX_PIN);    // Uno example
-//HardwareSerial mySerial(1);               // ESP32 Example 
 
 unsigned long getDataTimer = 0;
 
@@ -37,14 +36,15 @@ void setup()
 {
     Serial.begin(9600);  
    
-    mySerial.begin(BAUDRATE);                                    // Uno Example: Begin Stream with MHZ19 baudrate
-    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);      // ESP32 Example
+    mySerial.begin(BAUDRATE);                                   // Uno Example: Begin Stream with MHZ19 baudrate
 
-    myMHZ19.begin(mySerial);                                     // *Important, Pass your Stream reference here  
+    myMHZ19.begin(mySerial);                                    // *Important, Pass your Stream reference here  
+    
+    /* Enable filter "mode 1" */
+    myMHZ19.setFilter(true, true);                              // ** Comment out to enable "mode 2" **
+    //myMHZ19.setFilter(true, false);                           // ** Uncomment to enable "mode 2".**
 
-    myMHZ19.setFilter(true);                                     // Enable "filter mode"
-
-    myMHZ19.autoCalibration(true);                               // Turn auto calibration ON
+    myMHZ19.autoCalibration(true);                              // Turn auto calibration ON
 }
 
 void loop()
@@ -54,37 +54,54 @@ void loop()
 
         Serial.println("------------------");
 
-        /* get sensor readings as signed integer */        
+        // get sensor readings as signed integer        
         int CO2Unlimited = myMHZ19.getCO2(true, true);
-       
-        /* get library code set by above getCO2 function */
-        byte thisCode = myMHZ19.errorCode;
 
-        /* handle code based upon error type */
+        // ######### Mode 1 ############# //
+// /*
+        Serial.print("CO2: ");
+        Serial.print(CO2Unlimited);
+        Serial.println(" PPM");
+
+        if(CO2Unlimited != 0)
+        {
+            /* send/store your data code */
+        }
+        else
+        {
+            /* ignore data code */
+        }
+ // */   
+        // ######### Mode 2 ############# //         
+/*
+        // get library error code returned getCO2 function
+        byte thisCode = myMHZ19.errorCode;
+        
+        // handle code based upon error type
         if(thisCode != RESULT_OK)
         {
-            /* was it the filter ? */
-            if(thisCode == RESULT_ERR_FILTER)
+            // was it the filter ?
+            if(thisCode == RESULT_FILTER)
             {
                 Serial.println("*** Filter was triggered ***");
                 Serial.print("Offending Value: ");
                 Serial.println(CO2Unlimited);
             }
-            /* if not, then... */
+            // if not, then...
             else
             {
                 Serial.print("Communication Error Found. Error Code: ");
                 Serial.println(thisCode);
             }
         } 
-        /* error code was result OK. Print as "normal" */ 
+        // error code was result OK. Print as "normal" 
         else
         {
             Serial.print("CO2: ");
             Serial.print(CO2Unlimited);
-            Serial.println("PPM");
+            Serial.println(" PPM");
         }
-
+*/
         getDataTimer = millis();   // Update interval
     }
 }

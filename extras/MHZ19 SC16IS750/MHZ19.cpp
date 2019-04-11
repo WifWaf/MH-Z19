@@ -1,7 +1,7 @@
 /*************************************************** 
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.4.1
+  Version: 1.4.2
 
   License: GPL-3.0
 
@@ -110,9 +110,10 @@ void MHZ19::setSpan(int span)
     return;
 }
 
-void MHZ19::setFilter(bool isON)
+void MHZ19::setFilter(bool isON, bool isCleared)
 {
     this->filterMode = isON;
+    this->filterCleared = isCleared;
 }
 
 /*########################-Get Functions-##########################*/
@@ -150,36 +151,52 @@ int MHZ19::getCO2(bool isunLimited, bool force)
             unsigned int checkVal[2];
             bool trigFilter = false;
 
-            if(!isunLimited)                    // Filter was must call the opposest limited command to work
+            // Filter was must call the opposest unlimited/limited command to work
+            if(!isunLimited)                    
                 provisioning(TEMPUNLIM);
             else
                 provisioning(TEMPLIM);
             
-            checkVal[0] = bytes2int(responseTEMPUNLIM[4], responseTEMPUNLIM[5]); 
+            checkVal[0] = bytes2int(responseTEMPUNLIM[4], responseTEMPUNLIM[5]);
             checkVal[1] = bytes2int(responseTEMPLIM[2], responseTEMPLIM[3]);
-            
-            if(checkVal[0] > 32767)             // Is value larger than int? Occurs shortly after rest. 
-            {
-                checkVal[0] = 32767;            // Set to maximum to avoid returning negative overflow.
-                trigFilter = true;
-            }
 
-            if(checkVal[1] > 32767)
-            {
-                checkVal[0] = 32767;
-                trigFilter = true;
-            }
+            // Limited CO2 stays at 410ppm during reset, so comparing unlimited which instead
+            // shows an abormal value, reset duration can be found. Limited CO2 ppm returns to "normal"
+            // after reset.
 
-            if(((checkVal[0] - checkVal[1]) >= 10) && checkVal[1] == 410)   // Limited stays at 410ppm, so compare unlimited which is
-                trigFilter = true;                                          // is an abormal value. Limited CO2 ppm returns to "normal"
-                                                                            // after reset.
-            if(trigFilter)              
-                errorCode = RESULT_ERR_FILTER;
+            if(filterCleared)
+            {
+                if(checkVal[0] > 32767 || checkVal[1] > 32767 || (((checkVal[0] - checkVal[1]) >= 10) && checkVal[1] == 410))
+                {      
+                    errorCode = RESULT_FILTER;
+                    return 0;
+                }     
+            }
+            else
+            {
+                if(checkVal[0] > 32767)
+                {
+                    checkVal[0] = 32767;
+                    trigFilter = true;
+                }
+                if(checkVal[1] > 32767)
+                {
+                    checkVal[1] = 32767;
+                    trigFilter = true;
+                }
+                if(((checkVal[0] - checkVal[1]) >= 10) && checkVal[1] == 410)
+                    trigFilter = true;
+
+                if(trigFilter)
+                {              
+                    errorCode = RESULT_FILTER;
+                }
+            }
 
             if(isunLimited)       
                 return checkVal[0];
             else
-                return checkVal[1];   
+                return checkVal[1]; 
             /* FILTER END ----------------------------------------------------------- */             
         }              
     }
@@ -214,21 +231,34 @@ float MHZ19::getTransmittance(bool force)
         return 0;
 }
 
-float MHZ19::getTemperature(bool isDec, bool force)
+float MHZ19::getTemperature(bool isFloat, bool force)
 {
-    if(isDec)
+    if(isFloat)
     {
+        static byte baseTemp = 0;
+        static bool isSet = false;
+
+        if(!isSet)
+        {
+            provisioning(TEMPLIM);
+            byte buff = (responseTEMPLIM[4] - 38);
+
+            baseTemp = buff - (byte)getTemperatureOffset(true);
+            isSet = true;
+        }
+        
         if(force)
             provisioning(TEMPUNLIM);
+
         if(errorCode == RESULT_OK || force == false)
         {
-           float buff = 24;
+           float buff = baseTemp;
            buff += getTemperatureOffset(false);
            return buff;
         }
     }
     
-    else if(!isDec)
+    else if(!isFloat)
     {
     if (force == true)
         provisioning(TEMPLIM);
@@ -239,15 +269,16 @@ float MHZ19::getTemperature(bool isDec, bool force)
     
     return -273.15;    
 }
-
-float MHZ19::getTemperatureOffset(bool force)   
+ 
+float MHZ19::getTemperatureOffset(bool force)
 {
      if (force == true)
         provisioning(TEMPUNLIM);
 
     if (errorCode == RESULT_OK || force == false)
     {
-        /* Value appears to be for CO2 offset from 24C (useful for deriving CO2 from raw?) */
+        /* Value appears to be for CO2 offset (useful for deriving CO2 from raw?) */
+        /* Adjustments and calculations are based on observations of temp behavour */
 
         float calc = (((responseTEMPUNLIM[2] - 8) * 1500) + ((responseTEMPUNLIM[3] * 100) * 1 / 17));
         calc /= 100;
@@ -255,7 +286,7 @@ float MHZ19::getTemperatureOffset(bool force)
     }
 
     return -273.15;
-}
+} 
 
 int MHZ19::getRange()
 {
@@ -319,9 +350,9 @@ byte MHZ19::getTempAdjustment()
 {
     provisioning(GETEMPCAL);
 
-    /* 40 is shown here, however this library deductes -2 
-     when using temperature function as it is inaccurate, 
-     (confirmed by command 133) */
+    /* 40 is returned here, however this library deductes -2 
+     when using temperature function as it appears inaccurate, 
+    */
 
     if (errorCode == RESULT_OK)
         return (responseSTAT[3]);
@@ -754,7 +785,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
 
 void MHZ19::ABCCheck()
 {
-    /* check timer interval if 12 hours have passed and if ABC_OFF was set to true */
+    /* check timer interval if dynamic hours have passed and if ABC_OFF was set to true */
     if (((millis() - ABCRepeatTimer) >= (ABCInterval)) && (ABCRepeat == true))
     {
         /* update timer inerval */

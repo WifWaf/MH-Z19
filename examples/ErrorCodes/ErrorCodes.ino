@@ -12,7 +12,7 @@
 	RESULT_ERR_MATCH = 3,            // Recieved data does not match the usual syntax expected
 	RESULT_ERR_CRC = 4,              // Recieved data does not match the CRC given
     RESULT_ERR_FILTER = 5,           // Filter was triggered (see FilterUsage example)
-	RESULT_FAILED = 5                // Not currently used
+	RESULT_FAILED = 6                // Not currently used
 */
 
 #include <Arduino.h>

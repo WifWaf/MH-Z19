@@ -81,9 +81,7 @@ void loop()
         Serial.print("CO2 (ppm): ");
         Serial.println(CO2Unlim);                                        // unlimimted value, new request
 
-        /*  The below command is not currently working, so please ignore the value if it is wrong for your sensor.
-            A more compatable command will be implimented at a later time
-        */
+        /*  The below command is not fully working/tested, so please ignore the value if it is wrong for your sensor. */     
         float CO2UnlimTemp = myMHZ19.getTemperature(true, false);
         Serial.print("Temperature (C): ");                             
         Serial.println(CO2UnlimTemp);                                    // decimal value, not new request 
