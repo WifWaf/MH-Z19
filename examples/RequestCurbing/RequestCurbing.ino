@@ -23,13 +23,13 @@
     (false) Request is not sent or verified.
     (true)  Default.    
 
-     /---- getCO2ppm(isDec, New Request) -----/
+     /---- getCO2ppm(isFloat, New Request) -----/
 
     Usage example; getTempeature(true, false)
 
     isDec:
-    (true)  Use isDec / command 133. 
-    (false) Use isDec / command 134.        
+    (true)  Use isFloat / command 133. 
+    (false) Use isFloat / command 134.        
     (false)  Default.
 
     New Request:
