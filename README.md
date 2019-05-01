@@ -72,8 +72,6 @@ All parameters can be bypassed using command 132 (0x84), however this requires m
 
 **Analog Out:** An additional feature of MH-Z19. The output in mV corresponds to ppm when using a range of 2000ppm. Alternatively, calculations can be made to adjust the value (See Examples).
 
-**RS485:** A half duplex receiver such as the as the MAX485 might work attached to the unlabelled RS pin between Hd and Tx (untested).
-
 ### Main Priorities:
 ---
 
@@ -83,7 +81,7 @@ All parameters can be bypassed using command 132 (0x84), however this requires m
 
 - [ ] Determine the functioning of sending byte 7 with Zero Calibration and it's relationship with Range
 
-### Disclaimer
+### Additional Disclaimer
 ---
 THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
@@ -93,11 +91,11 @@ Myself, you can find my contact details below.
 
 ### License
 ---
-This project is licensed under the GNU General Public License v3.0 License - see the LICENSE.md file for details
+This project is licensed under the Lesser General Public License v3.0 License - see the LICENSE.md file for details
 
 ### Acknowledgments
 ----
-This library was originally derived/inspired by Strange-V's work! https://github.com/strange-v/MHZ19;
+This library was originaly inspired by Strange-V's work! https://github.com/strange-v/MHZ19;
 
 ### Feedback
 ---
