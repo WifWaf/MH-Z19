@@ -6,6 +6,13 @@ Copy MHZ19.cpp, MHZ19.h, SC16IS750.h and SC16IS750.cpp to a folder.
 
 This version contains all the same functionaly as the main libary. The only difference is that the I2C pins and SC16IS750 address are passed into the constructor and begin() is left blank. See examples (basic usage only as all functions are the same)
 
+
+### License (!Important).
+Note that Sanbox Electronics have uses the CC BY-NC-SA 3.0 - Creative Commons License. Therefore 
+LGPLv3 does apply to this version as indicated in the MHZ19 extras files. 
+
+Changes made to the file were to add I2c flexability for the MHZ19 library to make user interaction as simple as possible.
+
 ### This version uses a Sandbox Electronic library with minor changes available here: https://github.com/SandboxElectronics/UART_Bridge
 ---
 

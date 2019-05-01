@@ -3,7 +3,7 @@
   
   Version: 1.4.3
 
-  License: LGPLv3
+  License: CC BY-NC-SA 3.0
 
   Library supporting MHZ19 sensors
 ----------------------------------------------------- */
