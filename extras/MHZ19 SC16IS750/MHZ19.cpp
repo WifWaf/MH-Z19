@@ -1,21 +1,12 @@
-/*************************************************** 
+/* -------------------------------------------------
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.4.2
+  Version: 1.4.3
 
-  License: GPL-3.0
+  License: LGPLv3
 
-  This is a library for the MHZ19 CO2 Sensor 
-
-  The sensors uses UART to communicate and sends
-  9 bytes in a modbus-like sequence. The sensor
-  responds and the bytes are interpreted.
-  
-  Considerable time has gone into discovering, 
-  implementing and making these commands accessible, so
-  please abide the licensing and support open
-  source.
- ****************************************************/
+  Library supporting MHZ19 sensors
+----------------------------------------------------- */
 
 #include "MHZ19.h"
 #include "SC16IS750.h"
@@ -48,7 +39,7 @@ byte Commands[13] = {
 
 MHZ19::MHZ19(byte SDA, byte SDL, byte addr) : _SDA(SDA), _SDL(SDL), _addr(addr){}
  
-void MHZ19::begin()
+void MHZ19::begin() 
 {
      /* UART to Serial Bridge Initialization */
     i2cuart.begin(BAUDRATE, _SDA, _SDL, _addr);
@@ -112,8 +103,8 @@ void MHZ19::setSpan(int span)
 
 void MHZ19::setFilter(bool isON, bool isCleared)
 {
-    this->filterMode = isON;
-    this->filterCleared = isCleared;
+    this->storage.settings.filterMode = isON;
+    this->storage.settings.filterCleared = isCleared;
 }
 
 /*########################-Get Functions-##########################*/
@@ -130,14 +121,14 @@ int MHZ19::getCO2(bool isunLimited, bool force)
 
     if (errorCode == RESULT_OK || force == false)
     {
-        if (!this->filterMode)
+        if (!this->storage.settings.filterMode)
         {
             unsigned int validRead = 0;
 
             if(isunLimited)              
-                validRead = bytes2int(responseTEMPUNLIM[4], responseTEMPUNLIM[5]);
+                validRead = makeInt(this->storage.responses.TEMPUNLIM[4], this->storage.responses.TEMPUNLIM[5]);
             else
-                validRead = bytes2int(responseTEMPLIM[2], responseTEMPLIM[3]);
+                validRead = makeInt(this->storage.responses.TEMPLIM[2], this->storage.responses.TEMPLIM[3]);
 
             if(validRead > 32767)
                 validRead = 32767;  // Set to maximum to stop negative values being return due to overflow
@@ -157,14 +148,14 @@ int MHZ19::getCO2(bool isunLimited, bool force)
             else
                 provisioning(TEMPLIM);
             
-            checkVal[0] = bytes2int(responseTEMPUNLIM[4], responseTEMPUNLIM[5]);
-            checkVal[1] = bytes2int(responseTEMPLIM[2], responseTEMPLIM[3]);
+            checkVal[0] = makeInt(this->storage.responses.TEMPUNLIM[4], this->storage.responses.TEMPUNLIM[5]);
+            checkVal[1] = makeInt(this->storage.responses.TEMPLIM[2], this->storage.responses.TEMPLIM[3]);
 
             // Limited CO2 stays at 410ppm during reset, so comparing unlimited which instead
             // shows an abormal value, reset duration can be found. Limited CO2 ppm returns to "normal"
             // after reset.
 
-            if(filterCleared)
+            if(this->storage.settings.filterCleared)
             {
                 if(checkVal[0] > 32767 || checkVal[1] > 32767 || (((checkVal[0] - checkVal[1]) >= 10) && checkVal[1] == 410))
                 {      
@@ -209,7 +200,7 @@ float MHZ19::getCO2Raw(bool force)
         provisioning(RAWCO2);
 
     if (errorCode == RESULT_OK || force == false)
-        return bytes2int(responseRAW[2], responseRAW[3]);
+        return makeInt(this->storage.responses.RAW[2], this->storage.responses.RAW[3]);
 
     else
         return 0;
@@ -222,7 +213,7 @@ float MHZ19::getTransmittance(bool force)
 
     if (errorCode == RESULT_OK || force == false)
     {
-        float calc = (float)bytes2int((responseRAW[2]), responseRAW[3]);
+        float calc = (float)makeInt((this->storage.responses.RAW[2]), this->storage.responses.RAW[3]);
 
         return (calc * 100 / 35000); //  (calc * to percent / x(raw) zero)
     }
@@ -241,7 +232,7 @@ float MHZ19::getTemperature(bool isFloat, bool force)
         if(!isSet)
         {
             provisioning(TEMPLIM);
-            byte buff = (responseTEMPLIM[4] - 38);
+            byte buff = (this->storage.responses.TEMPLIM[4] - 38);
 
             baseTemp = buff - (byte)getTemperatureOffset(true);
             isSet = true;
@@ -264,7 +255,7 @@ float MHZ19::getTemperature(bool isFloat, bool force)
         provisioning(TEMPLIM);
 
     if (errorCode == RESULT_OK || force == false)
-        return (responseTEMPLIM[4] - 38);
+        return (this->storage.responses.TEMPLIM[4] - 38);
     }
     
     return -273.15;    
@@ -280,7 +271,7 @@ float MHZ19::getTemperatureOffset(bool force)
         /* Value appears to be for CO2 offset (useful for deriving CO2 from raw?) */
         /* Adjustments and calculations are based on observations of temp behavour */
 
-        float calc = (((responseTEMPUNLIM[2] - 8) * 1500) + ((responseTEMPUNLIM[3] * 100) * 1 / 17));
+        float calc = (((this->storage.responses.TEMPUNLIM[2] - 8) * 1500) + ((this->storage.responses.TEMPUNLIM[3] * 100) * 1 / 17));
         calc /= 100;
         return calc;
     }
@@ -295,7 +286,7 @@ int MHZ19::getRange()
 
     if (errorCode == RESULT_OK)
         /* convert MH-Z19 memory value and return */
-        return (int)bytes2int(responseSTAT[4], responseSTAT[5]);
+        return (int)makeInt(this->storage.responses.STAT[4], this->storage.responses.STAT[5]);
 
     else
         return 0;
@@ -307,7 +298,7 @@ byte MHZ19::getAccuracy(bool force)
         provisioning(TEMPLIM);
 
     if (errorCode == RESULT_OK || force == false)
-        return responseTEMPLIM[5];
+        return this->storage.responses.TEMPLIM[5];
 
     else
         return 0;
@@ -328,7 +319,7 @@ void MHZ19::getVersion(char rVersion[])
     if (errorCode == RESULT_OK)
         for (byte i = 0; i < 4; i++)
         {
-            rVersion[i] = char(responseSTAT[i + 2]);
+            rVersion[i] = char(this->storage.responses.STAT[i + 2]);
         }
 
     else
@@ -340,7 +331,7 @@ int MHZ19::getBackgroundCO2()
     provisioning(GETCALPPM);
 
     if (errorCode == RESULT_OK)
-        return (int)bytes2int(responseSTAT[4], responseSTAT[5]);
+        return (int)makeInt(this->storage.responses.STAT[4], this->storage.responses.STAT[5]);
 
     else
         return 0;
@@ -355,7 +346,7 @@ byte MHZ19::getTempAdjustment()
     */
 
     if (errorCode == RESULT_OK)
-        return (responseSTAT[3]);
+        return (this->storage.responses.STAT[3]);
 
     else
         return 0;
@@ -366,7 +357,7 @@ byte MHZ19::getLastResponse(byte bytenum)
     provisioning(GETLASTRESP);
 
     if (errorCode == RESULT_OK)
-        return (responseSTAT[bytenum]);
+        return (this->storage.responses.STAT[bytenum]);
 
     else
         return 0;
@@ -381,9 +372,9 @@ void MHZ19::stablise()
     /* construct common command (133) */
     constructCommand(TEMPUNLIM);
 
-    write(constructedCommand);
+    write(this->storage.constructedCommand);
 
-    while (receiveResponse(responseTEMPUNLIM, TEMPUNLIM) != RESULT_OK)
+    while (read(this->storage.responses.TEMPUNLIM, TEMPUNLIM) != RESULT_OK)
     {
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
@@ -398,12 +389,12 @@ void MHZ19::stablise()
 
     /* construct & write last response command (162) */
     constructCommand(GETLASTRESP);
-    write(constructedCommand);
+    write(this->storage.constructedCommand);
     
     /* update timeStamp  for next comms iteration */ 
     timeStamp = millis();
 
-    while (receiveResponse(responseSTAT, GETLASTRESP) != RESULT_OK)
+    while (read(this->storage.responses.STAT, GETLASTRESP) != RESULT_OK)
     {
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
@@ -420,7 +411,7 @@ void MHZ19::stablise()
     /* compare CO2 response command(133) against, last response command (162)*/
     for (byte i = 2; i < 8; i++)
     {
-        if (responseTEMPUNLIM[i] != responseSTAT[i])
+        if (this->storage.responses.TEMPUNLIM[i] != this->storage.responses.STAT[i])
         {
             #if defined (ESP32) && (MHZ19_ERRORS)
             ESP_LOGE(TAG_MHZ19, "Last response was not found, call back failed. Failed to stablise");
@@ -436,22 +427,29 @@ void MHZ19::stablise()
 
 void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
 {
-    ABCInterval = ABCPeriod;
-    ABCInterval /= 2;
-    ABCInterval *= 3.6e6;
-
-    if (ABCPeriod && isON)
+    /* If ABC is ON */
+    if(isON)
     {
-        if(ABCPeriod >= 24)
-            ABCPeriod = 160;            
-        else
-            ABCPeriod *= 6.7;
-    }
+        /* If a period was defined */
+        if (ABCPeriod)
+        {
+            /* Catch values out of range */
+            if(ABCPeriod >= 24)
+                ABCPeriod = 24;
 
-    else if (isON)
-        ABCPeriod = 160;
- 
-    ABCRepeat = !isON;     
+            /* Convert to bytes */
+             ABCPeriod *= 6.7;
+        }      
+        /* If no period was defined (for safety, even though default argument is given)*/
+        else
+            ABCPeriod = 160;    // Default bytes
+    } 
+    /* If ABC is OFF */
+    else  
+        ABCPeriod = 0x00;                      // Set command byte to Zero to match command format.     
+
+    /* Update storage */  
+    this->storage.settings.ABCRepeat = !isON;  // Set to opposite, as repeat command is sent only when ABC is OFF.
 
     provisioning(ABC, ABCPeriod);
 }
@@ -504,8 +502,8 @@ void MHZ19::recoveryReset()
 
 void MHZ19::printCommunication(bool isDec, bool isPrintComm)
 {
-    _isDec = isDec;
-    printcomm = isPrintComm;
+    this->storage.settings._isDec = isDec;
+    this->storage.settings.printcomm = isPrintComm;
 }
 
 /*######################-Inernal Functions-########################*/
@@ -516,7 +514,7 @@ void MHZ19::provisioning(Command_Type commandtype, int inData)
     constructCommand(commandtype, inData);
 
     /* write to serial */
-    write(constructedCommand);
+    write(this->storage.constructedCommand);
 
     /*return response */
     handleResponse(commandtype);
@@ -536,7 +534,7 @@ void MHZ19::constructCommand(Command_Type commandtype, int inData)
 
     /* prepare arrays */
     memset(asemblecommand, 0, 9);
-    memset(constructedCommand, 0, 9);
+    memset(this->storage.constructedCommand, 0, 9);
 
     /* set address to 'any' */
     asemblecommand[0] = 255; ///(0xFF) 255/FF means 'any' address (where the sensor is located)
@@ -552,7 +550,7 @@ void MHZ19::constructCommand(Command_Type commandtype, int inData)
     case RECOVER:
         break;
     case ABC:
-        if (ABCRepeat == false)
+        if (this->storage.settings.ABCRepeat == false)
             asemblecommand[3] = inData;
         break;
     case RAWCO2:
@@ -566,12 +564,12 @@ void MHZ19::constructCommand(Command_Type commandtype, int inData)
             asemblecommand[6] = inData;
         break;
     case SPANCAL:
-        int2bytes(inData, &High, &Low);
+        makeByte(inData, &High, &Low);
         asemblecommand[3] = High;
         asemblecommand[4] = Low;
         break;
     case RANGE:
-        int2bytes(inData, &High, &Low);
+        makeByte(inData, &High, &Low);
         asemblecommand[6] = High;
         asemblecommand[7] = Low;
         break;
@@ -588,24 +586,26 @@ void MHZ19::constructCommand(Command_Type commandtype, int inData)
     }
 
     /* set checksum */
-    asemblecommand[8] = checkSum(asemblecommand);
+    asemblecommand[8] = getCRC(asemblecommand);
 
     /* copy bytes from asemblecommand to constructedCommand */
-    memcpy(constructedCommand, asemblecommand, 9);
+    memcpy(this->storage.constructedCommand, asemblecommand, 9);
 }
 
-byte MHZ19::checkSum(byte inBytes[])
+byte MHZ19::getCRC(byte inBytes[])
 {
-    byte i;
-    byte crc = 0;
-    for (i = 1; i < 8; i++)
-    {
-        crc += inBytes[i];
-    }
-    crc = 255 - crc;
-    crc++;
+    /* as shown in datasheet */
+    byte x = 0, CRC = 0;
 
-    return crc;
+    for (x = 1; x < 8; x++)
+    {
+        CRC += inBytes[x];
+    }
+
+    CRC = 255 - CRC;
+    CRC++;
+
+    return CRC;
 }
 
 void MHZ19::write(byte toSend[])
@@ -617,26 +617,26 @@ void MHZ19::write(byte toSend[])
     }
 
     /* for print communications */
-    if (printcomm == true)
+    if (this->storage.settings.printcomm == true)
         printstream(toSend, true, errorCode);
 }
 
 void MHZ19::handleResponse(Command_Type commandtype)
 {
-    if (constructedCommand[2] == Commands[2])      //compare commands byte
-        receiveResponse(responseRAW, commandtype); //returns errornum, passes back response, inputs command
+    if (this->storage.constructedCommand[2] == Commands[2])      //compare commands byte
+        read(this->storage.responses.RAW, commandtype); //returns errornum, passes back response, inputs command
 
-    else if (constructedCommand[2] == Commands[3])
-        receiveResponse(responseTEMPUNLIM, commandtype);
+    else if (this->storage.constructedCommand[2] == Commands[3])
+        read(this->storage.responses.TEMPUNLIM, commandtype);
 
-    else if (constructedCommand[2] == Commands[4])
-        receiveResponse(responseTEMPLIM, commandtype);
+    else if (this->storage.constructedCommand[2] == Commands[4])
+        read(this->storage.responses.TEMPLIM, commandtype);
 
     else
-        receiveResponse(responseSTAT, commandtype);
+        read(this->storage.responses.STAT, commandtype);
 }
 
-byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
+byte MHZ19::read(byte inBytes[9], Command_Type commandnumber)
 {
     /* loop escape */
     unsigned long timeStamp = millis();
@@ -645,7 +645,7 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
     memset(inBytes, 0, 9);
 
     /* prepare errorCode */
-    errorCode = RESULT_ERR_NULL;
+    errorCode = RESULT_NULL;
 
     /* Read from SC16IS750 */
     while (i2cuart.available() == 0)
@@ -658,8 +658,8 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
             Serial.println("!Warning: Timed out waiting for response");
         #endif
 
-            errorCode = RESULT_ERR_TIMEOUT;
-            return RESULT_ERR_TIMEOUT;
+            errorCode = RESULT_TIMEOUT;
+            return RESULT_TIMEOUT;
         }
     }
 
@@ -670,25 +670,25 @@ byte MHZ19::receiveResponse(byte inBytes[9], Command_Type commandnumber)
         index++;
     }
 
-    if (errorCode == RESULT_ERR_TIMEOUT)
+    if (errorCode == RESULT_TIMEOUT)
         return errorCode;
 
-    byte crc = checkSum(inBytes);
+    byte crc = getCRC(inBytes);
 
     /* CRC error will not overide match error */
     if (inBytes[8] != crc)
-        errorCode = RESULT_ERR_CRC;
+        errorCode = RESULT_CRC;
 
     /* construct error code */
-    if (inBytes[0] != constructedCommand[0] || inBytes[1] != constructedCommand[2])
-        errorCode = RESULT_ERR_MATCH;
+    if (inBytes[0] != this->storage.constructedCommand[0] || inBytes[1] != this->storage.constructedCommand[2])
+        errorCode = RESULT_MATCH;
 
     /* if error has been assigned */
-    if (errorCode == RESULT_ERR_NULL)
+    if (errorCode == RESULT_NULL)
         errorCode = RESULT_OK;
 
     /* print results */
-    if (printcomm == true)
+    if (this->storage.settings.printcomm == true)
         printstream(inBytes, false, errorCode);
 
     return errorCode;
@@ -700,7 +700,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
     #if defined (ESP32) && (MHZ19_ERRORS)      
     if (pserrorCode != RESULT_OK && isSent == false)
     {
-        if (_isDec)
+        if (this->storage.settings._isDec)
             ESP_LOGE(TAG_MHZ19, "Recieved >> %d %d %d %d %d %d %d %d %d ERROR Code: %d",
                      inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8],
                      pserrorCode);
@@ -711,7 +711,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
     }
     else
     {
-        if (_isDec)
+        if (this->storage.settings._isDec)
             ESP_LOGD(TAG_MHZ19, "%s %d %d %d %d %d %d %d %d %d PASS", isSent ? "Sent << " : "Recieved >> ",
                      inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8]);
         else
@@ -725,7 +725,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
     {
         Serial.print("Recieved >> ");
 
-        if (_isDec)
+        if (this->storage.settings._isDec)
         {
             Serial.print("DEC: ");
             for (uint8_t i = 0; i < 9; i++)
@@ -755,7 +755,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
     {
         isSent ? Serial.print("Sent << ") : Serial.print("Recieved >> ");
 
-        if (_isDec)
+        if (this->storage.settings._isDec)
         {
             Serial.print("DEC: ");
             for (uint8_t i = 0; i < 9; i++)
@@ -786,7 +786,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
 void MHZ19::ABCCheck()
 {
     /* check timer interval if dynamic hours have passed and if ABC_OFF was set to true */
-    if (((millis() - ABCRepeatTimer) >= (ABCInterval)) && (ABCRepeat == true))
+    if (((millis() - ABCRepeatTimer) >= 4.32e7) && (this->storage.settings.ABCRepeat == true))
     {
         /* update timer inerval */
         ABCRepeatTimer = millis();
@@ -795,11 +795,11 @@ void MHZ19::ABCCheck()
         constructCommand(ABC);
 
         /* write to serial */
-        write(constructedCommand);
+        write(this->storage.constructedCommand);
     }
 }
 
-void MHZ19::int2bytes(int inInt, byte *high, byte *low)
+void MHZ19::makeByte(int inInt, byte *high, byte *low)
 {
     *high = (byte)(inInt / 256);
     *low = (byte)(inInt % 256);
@@ -807,7 +807,7 @@ void MHZ19::int2bytes(int inInt, byte *high, byte *low)
     return;
 }
 
-unsigned int MHZ19::bytes2int(byte high, byte low)
+unsigned int MHZ19::makeInt(byte high, byte low)
 {
     unsigned int calc = ((unsigned int)high * 256) + (unsigned int)low;
 

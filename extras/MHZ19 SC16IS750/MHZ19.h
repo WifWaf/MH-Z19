@@ -1,21 +1,12 @@
-/*************************************************** 
+/* -------------------------------------------------
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.4.2
+  Version: 1.4.3
 
-  License: GPL-3.0
+  License: LGPLv3
 
-  This is a library for the MHZ19 CO2 Sensor
-
-  The sensors uses UART to communicate and sends
-  9 bytes in a modbus-like sequence. The sensor
-  responds and the bytes are interpreted.
-  
-  Considerable time has gone into discovering, 
-  implementing and making these commands accessible, so
-  please abide the licensing and support open
-  source.
- ****************************************************/
+  Library supporting MHZ19 sensors
+----------------------------------------------------- */
 
 #ifndef MHZ19_H
 #define MHZ19_H
@@ -37,32 +28,14 @@
 /* enum alias for error code defintions */
 enum ERRORCODE
 {
-	RESULT_ERR_NULL = 0,
+	RESULT_NULL = 0,
 	RESULT_OK = 1,
-	RESULT_ERR_TIMEOUT = 2,
-	RESULT_ERR_MATCH = 3,
-	RESULT_ERR_CRC = 4,
+	RESULT_TIMEOUT = 2,
+	RESULT_MATCH = 3,
+	RESULT_CRC = 4,
 	RESULT_FILTER = 5,
 	RESULT_FAILED = 6
 };
-
-/* alias for command types */
-typedef enum COMMAND_TYPE
-{
-	RECOVER = 0,		// 0 Recovery Reset
-	ABC = 1,			// 1 ABC Mode ON/OFF
-	RAWCO2 = 2,			// 2 Raw CO2
-	TEMPUNLIM = 3,		// 3 Temp float, CO2 Unlimited
-	TEMPLIM = 4,		// 4 Temp integer, CO2 limited
-	ZEROCAL = 5,		// 5 Zero Calibration
-	SPANCAL = 6,		// 6 Span Calibration
-	RANGE = 7,			// 7 Range
-	GETRANGE = 8,		// 8 Get Range
-	GETCALPPM = 9,		// 9 Get Background CO2
-	GETFIRMWARE = 10,	// 10 Get Firmware Version
-	GETLASTRESP = 11,	// 11 Get Last Response
-	GETEMPCAL = 12 		// 12 Get Temp Calibration
-} Command_Type;
 
 class MHZ19
 {
@@ -152,32 +125,50 @@ class MHZ19
   private:
 	/*###########################-Variables-##########################*/
 
-	uint8_t _SDA, _SDL, _addr;
+  /* Constructer Variables */
+ 	uint8_t _SDA, _SDL, _addr;
 
-	/* A flag which represents whether autocalibration abcperiod is checked */
-	bool ABCRepeat = false;
+  /* alias for command types */
+	typedef enum COMMAND_TYPE
+	{
+		RECOVER = 0,		// 0 Recovery Reset
+		ABC = 1,			// 1 ABC Mode ON/OFF
+		RAWCO2 = 2,			// 2 Raw CO2
+		TEMPUNLIM = 3,		// 3 Temp float, CO2 Unlimited
+		TEMPLIM = 4,		// 4 Temp integer, CO2 limited
+		ZEROCAL = 5,		// 5 Zero Calibration
+		SPANCAL = 6,		// 6 Span Calibration
+		RANGE = 7,			// 7 Range
+		GETRANGE = 8,		// 8 Get Range
+		GETCALPPM = 9,		// 9 Get Background CO2
+		GETFIRMWARE = 10,	// 10 Get Firmware Version
+		GETLASTRESP = 11,	// 11 Get Last Response
+		GETEMPCAL = 12 		// 12 Get Temp Calibration
+	} Command_Type;
 
-	/* Flag set by setFilter() to signify is "filter mode" was made active */
-	bool filterMode = false; 
-    bool filterCleared = true;
+	/* Memory Pool */	
+	struct mempool
+	{
+		struct config
+		{
+			bool ABCRepeat = false;  						// A flag which represents whether autocalibration ABC period was checked
+			bool filterMode = false; 						// Flag set by setFilter() to signify is "filter mode" was made active
+			bool filterCleared = true;  				// Additional flag set by setFiler() to store which mode was selected			
+			bool printcomm = false; 				    // Communication print options
+			bool _isDec = true;									// Holds preferance for communication printing
+		} settings;
 
-	/* Holds interval for turning autocalibration off periodicaly */
-	unsigned long ABCInterval = 4.32e7;
+		byte constructedCommand[9];					// holder for new commands which are to be sent
 
-	/* Communication print options */
-	bool printcomm = false;
+		struct indata
+		{
+			byte TEMPUNLIM[9];		// Holds command 133 response values "temperature unlimited"
+			byte TEMPLIM[9];	  	// Holds command 134 response values "temperature limited"
+			byte RAW[9];			    // Holds command 132 response values "CO2 Raw"
+			byte STAT[9];			    // Holds other command response values such as range, background CO2 etc
+		} responses;
 
-	/* Additional flag set by setFiler() to store which mode was selected */ 
-	bool _isDec = true;
-
-	/* holder for new commands which are to be sent */
-	byte constructedCommand[9];
-
-	/* Incoming Data Holders */	
-	byte responseTEMPUNLIM[9];		// Holds command 133 response values "temperature unlimited"
-	byte responseTEMPLIM[9];		// Holds command 134 response values "temperature limited"
-	byte responseRAW[9];			// Holds command 132 response values "CO2 Raw"
-	byte responseSTAT[9];			// Holds other command response values such as range, background CO2 etc
+	} storage;
 
 	/*######################-Inernal Functions-########################*/
 
@@ -188,16 +179,16 @@ class MHZ19
 	void constructCommand(Command_Type commandtype, int inData = 0);
 
 	/* generates a checksum for sending and verifying incoming data */
-	byte checkSum(byte inBytes[]);
+	byte getCRC(byte inBytes[]);
 
 	/* Sends commands to the sensor */
 	void write(byte toSend[]);
 
+	/* Call retrieveData to retrieve values from the sensor and check return code */
+	byte read(byte inBytes[9], Command_Type commandnumber);
+	
 	/* Assigns response to the correct communcation arrays */
 	void handleResponse(Command_Type commandtype);
-
-	/* Call retrieveData to retrieve values from the sensor and check return code */
-	byte receiveResponse(byte inBytes[9], Command_Type commandnumber);
 
 	/* prints sending / recieving messages if enabled */
 	void printstream(byte inbytes[9], bool isSent, byte pserrorCode);
@@ -206,9 +197,9 @@ class MHZ19
 	void ABCCheck();
 
 	/* converts integers to bytes according to /256 and %256 */
-	void int2bytes(int inInt, byte *high, byte *low);
+	void makeByte(int inInt, byte *high, byte *low);
 
 	/* converts bytes to integers according to *256 and + value */
-	unsigned int bytes2int(byte high, byte low);
+	unsigned int makeInt(byte high, byte low);
 };
 #endif

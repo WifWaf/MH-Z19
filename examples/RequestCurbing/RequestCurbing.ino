@@ -65,7 +65,7 @@ void setup()
  
     myMHZ19.printCommunication(true, true);                 // *Shows communication between MHZ19 and Device.
                                                             // use printCommunication(true, false) to print as HEX
-
+    Serial.println("\n**** Setting AutoCalibration OFF ****");
     myMHZ19.autoCalibration(false);                         // Turn Auto Calibration OFF    
 }                                                         
 
@@ -81,7 +81,7 @@ void loop()
         Serial.print("CO2 (ppm): ");
         Serial.println(CO2Unlim);                                        // unlimimted value, new request
 
-        /*  The below command is not fully working/tested, so please ignore the value if it is wrong for your sensor. */     
+        /*  The below function is not fully tested, so please report any issues. */     
         float CO2UnlimTemp = myMHZ19.getTemperature(true, false);
         Serial.print("Temperature (C): ");                             
         Serial.println(CO2UnlimTemp);                                    // decimal value, not new request 

@@ -11,7 +11,8 @@
   its own calibrated PPM.
 
   Using this relationship, a trend can be produced (an exponetial 
-  trend is ideal) which can be applied to the raw value. 
+  trend is ideal for a 2000 range, otherwise polynomial)
+  which can be applied to the raw value.
 
   While this is useful, it's important to remember that temperature
   and pressure both have an effect on PPM and that changes to these
