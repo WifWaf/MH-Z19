@@ -1,4 +1,4 @@
-![Version](https://img.shields.io/badge/Version-v1.3.5-green.svg)
+![Version](https://img.shields.io/badge/Version-v1.4.3-green.svg)
 
 ### "Usage"
 
