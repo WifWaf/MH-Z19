@@ -30,8 +30,13 @@ void loop()
     if (millis() - getDataTimer >= 2000)                    // Check if interval has elapsed (non-blocking delay() equivilant)
     {
         int CO2;                                            // Buffer for CO2
-        CO2 = myMHZ19.getCO2();                             // Request CO2 (as ppm)
 
+        /* note: getCO2() default is command "CO2 Unlimited". This returns the correct CO2 reading even 
+        if below background CO2 levels or above range (useful to validate sensor). You can use the 
+        usual documented command with getCO2(false) */
+
+        CO2 = myMHZ19.getCO2();                             // Request CO2 (as ppm)
+        
         Serial.print("CO2 (ppm): ");                      
         Serial.println(CO2);                                
 

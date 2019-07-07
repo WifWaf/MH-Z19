@@ -1,8 +1,7 @@
 /* 
     NOTE - the order of functions is important for correct
     calibration.
-    
-    HOW TO USE:
+
     Where other CO2 sensors require an nitrogen atmosphere to "zero"
     the sensor CO2 reference, the MHZ19 "zero" (confusingly) refers to the 
     background CO2 level hardcoded into the device at 400ppm (getBackgroundCO2() 
@@ -12,16 +11,24 @@
     levels as possible (currently an average of ~418ppm). Usually at night time and outside 
     if possible, otherwise when the house has been unoccupied for as long as possible such.
 
+    HOW TO USE:
+
+    ----- Hardware Method  -----
+    By pulling the zero HD low (0V) for 7 Secs as per the datasheet.   
+
+    ----- Software Method -----
+    Run this example while in an ideal environment (I.e. restarting the device). Once 
+    restarted, disconnect MHZ19 from device and upload a new sketch to avoid
+    recalibration.
+    
+    ----- Auto calibration ----
     If you are using auto calibration, the sensor will adjust its self every 24 hours
     (note here, the auto calibration algorithm uses the lowest observe CO2 value
     for that set of 24 hours as the zero - so, if your device is under an environment
     which does not fall to these levels, consider turning this off in your setup code). 
-    
+     
     If autoCalibration is set to "false", then getting the background calibration levels 
     correct at first try is essential.
-
-    This is an example of the calibration sequence. Details are given on how to use each library 
-    function. See main readme for more information.
 */
 
 #include <Arduino.h>
