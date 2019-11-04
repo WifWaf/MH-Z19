@@ -1,7 +1,7 @@
 /* -------------------------------------------------
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.4.3
+  Version: 1.4.4
 
   License: CC BY-NC-SA 3.0
 
@@ -54,7 +54,7 @@ void MHZ19::begin()
     }
 
     /* establish connection */
-    stablise();
+    verify();
 
     /* check if successful */
     if (errorCode != RESULT_OK)
@@ -365,7 +365,7 @@ byte MHZ19::getLastResponse(byte bytenum)
 
 /*######################-Utility Functions-########################*/
 
-void MHZ19::stablise()
+void MHZ19::verify()
 {
     unsigned long timeStamp = millis();
 
@@ -379,9 +379,9 @@ void MHZ19::stablise()
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
             #if defined (ESP32) && (MHZ19_ERRORS)
-            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor. Failed to stablise");
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor.");
          #elif MHZ19_ERRORS
-            Serial.println("!ERROR: Failed to verify connection(1) to sensor. Failed to stablise");
+            Serial.println("!ERROR: Failed to verify connection(1) to sensor.");
         #endif
             return;
         }
@@ -399,9 +399,9 @@ void MHZ19::stablise()
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
             #if defined (ESP32) && (MHZ19_ERRORS)
-            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor. Failed to stablise");
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor.");
          #elif MHZ19_ERRORS
-            Serial.println("!ERROR: Failed to verify connection(2) to sensor. Failed to stablise");
+            Serial.println("!ERROR: Failed to verify connection(2) to sensor.");
         #endif
 
             return;
@@ -409,14 +409,14 @@ void MHZ19::stablise()
     }
 
     /* compare CO2 response command(133) against, last response command (162)*/
-    for (byte i = 2; i < 8; i++)
+    for (byte i = 2; i < 6; i++)
     {
         if (this->storage.responses.TEMPUNLIM[i] != this->storage.responses.STAT[i])
         {
             #if defined (ESP32) && (MHZ19_ERRORS)
-            ESP_LOGE(TAG_MHZ19, "Last response was not found, call back failed. Failed to stablise");
+            ESP_LOGE(TAG_MHZ19, "Last response is not as expected, verification failed.");
          #elif MHZ19_ERRORS
-            Serial.println("!ERROR: Last response was not found, call back failed. Failed to stablise");
+            Serial.println("!ERROR: Last response is not as expected, verification failed.");
         #endif
 
             return;

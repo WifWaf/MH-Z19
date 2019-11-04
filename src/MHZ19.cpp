@@ -1,7 +1,7 @@
 /* -------------------------------------------------
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.4.3
+  Version: 1.4.4
 
   License: LGPLv3
 
@@ -35,7 +35,7 @@ void MHZ19::begin(Stream &serial)
     mySerial = &serial;    
     
     /* establish connection */
-    stablise();
+    verify();
 
     /* check if successful */
     if (this->errorCode != RESULT_OK) 
@@ -96,9 +96,9 @@ int MHZ19::getCO2(bool isunLimited, bool force)
     if (force == true)
     {
         if(isunLimited)
-            provisioning(TEMPUNLIM);
+            provisioning(CO2UNLIM);
         else
-            provisioning(TEMPLIM);
+            provisioning(CO2LIM);
      }
 
     if (this->errorCode == RESULT_OK || force == false)
@@ -108,9 +108,9 @@ int MHZ19::getCO2(bool isunLimited, bool force)
             unsigned int validRead = 0;
 
             if(isunLimited)              
-                validRead = makeInt(this->storage.responses.TEMPUNLIM[4], this->storage.responses.TEMPUNLIM[5]);
+                validRead = makeInt(this->storage.responses.CO2UNLIM[4], this->storage.responses.CO2UNLIM[5]);
             else
-                validRead = makeInt(this->storage.responses.TEMPLIM[2], this->storage.responses.TEMPLIM[3]);
+                validRead = makeInt(this->storage.responses.CO2LIM[2], this->storage.responses.CO2LIM[3]);
 
             if(validRead > 32767)
                 validRead = 32767;  // Set to maximum to stop negative values being return due to overflow
@@ -126,12 +126,12 @@ int MHZ19::getCO2(bool isunLimited, bool force)
 
             // Filter was must call the opposest unlimited/limited command to work
             if(!isunLimited)                    
-                provisioning(TEMPUNLIM);
+                provisioning(CO2UNLIM);
             else
-                provisioning(TEMPLIM);
+                provisioning(CO2LIM);
             
-            checkVal[0] = makeInt(this->storage.responses.TEMPUNLIM[4], this->storage.responses.TEMPUNLIM[5]);
-            checkVal[1] = makeInt(this->storage.responses.TEMPLIM[2], this->storage.responses.TEMPLIM[3]);
+            checkVal[0] = makeInt(this->storage.responses.CO2UNLIM[4], this->storage.responses.CO2UNLIM[5]);
+            checkVal[1] = makeInt(this->storage.responses.CO2LIM[2], this->storage.responses.CO2LIM[3]);
 
             // Limited CO2 stays at 410ppm during reset, so comparing unlimited which instead
             // shows an abormal value, reset duration can be found. Limited CO2 ppm returns to "normal"
@@ -213,15 +213,15 @@ float MHZ19::getTemperature(bool isFloat, bool force)
 
         if(!isSet)
         {
-            provisioning(TEMPLIM);
-            byte buff = (this->storage.responses.TEMPLIM[4] - 38);
+            provisioning(CO2LIM);
+            byte buff = (this->storage.responses.CO2LIM[4] - 38);
 
             baseTemp = buff - (byte)getTemperatureOffset(true);
             isSet = true;
         }
         
         if(force)
-            provisioning(TEMPUNLIM);
+            provisioning(CO2UNLIM);
 
         if(this->errorCode == RESULT_OK || force == false)
         {
@@ -233,11 +233,11 @@ float MHZ19::getTemperature(bool isFloat, bool force)
     
     else if(!isFloat)
     {
-    if (force == true)
-        provisioning(TEMPLIM);
+        if (force == true)
+            provisioning(CO2LIM);
 
-    if (this->errorCode == RESULT_OK || force == false)
-        return (this->storage.responses.TEMPLIM[4] - 38);
+        if (this->errorCode == RESULT_OK || force == false)
+            return (this->storage.responses.CO2LIM[4] - 38);
     }
     
     return -273.15;    
@@ -246,13 +246,13 @@ float MHZ19::getTemperature(bool isFloat, bool force)
 float MHZ19::getTemperatureOffset(bool force)
 {
      if (force == true)
-        provisioning(TEMPUNLIM);
+        provisioning(CO2UNLIM);
 
     if (this->errorCode == RESULT_OK || force == false)
     {
         /* Value appears to be for CO2 offset (useful for deriving CO2 from raw?) */
         /* Adjustments and calculations are based on observations of temp behavour */
-        float calc = (((this->storage.responses.TEMPUNLIM[2] - 8) * 1500) + ((this->storage.responses.TEMPUNLIM[3] * 100) * 1 / 17));
+        float calc = (((this->storage.responses.CO2UNLIM[2] - 8) * 1500) + ((this->storage.responses.CO2UNLIM[3] * 100) * 1 / 17));
         calc /= 100;
         return calc;
     }
@@ -276,10 +276,10 @@ int MHZ19::getRange()
 byte MHZ19::getAccuracy(bool force)
 {
     if (force == true)
-        provisioning(TEMPLIM);
+        provisioning(CO2LIM);
 
     if (this->errorCode == RESULT_OK || force == false)
-        return this->storage.responses.TEMPLIM[5];
+        return this->storage.responses.CO2LIM[5];
 
     else
         return 0;
@@ -346,23 +346,23 @@ byte MHZ19::getLastResponse(byte bytenum)
 
 /*######################-Utility Functions-########################*/
 
-void MHZ19::stablise()
+void MHZ19::verify()
 {
     unsigned long timeStamp = millis();
 
     /* construct common command (133) */
-    constructCommand(TEMPUNLIM);
+    constructCommand(CO2UNLIM);
 
     write(this->storage.constructedCommand);
 
-    while (read(this->storage.responses.TEMPUNLIM, TEMPUNLIM) != RESULT_OK)
+    while (read(this->storage.responses.CO2UNLIM, CO2UNLIM) != RESULT_OK)
     {
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
            #if defined (ESP32) && (MHZ19_ERRORS)
-            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor. Failed to stablise");   
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor.");   
             #elif MHZ19_ERRORS
-            Serial.println("!ERROR: Failed to verify connection(1) to sensor. Failed to stablise");
+            Serial.println("!ERROR: Failed to verify connection(1) to sensor.");
             #endif   
 
             return;
@@ -381,24 +381,24 @@ void MHZ19::stablise()
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
             #if defined (ESP32) && (MHZ19_ERRORS)
-            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor. Failed to stablise");   
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor.");   
             #elif MHZ19_ERRORS
-            Serial.println("!ERROR: Failed to verify connection(2) to sensor. Failed to stablise");
+            Serial.println("!ERROR: Failed to verify connection(2) to sensor.");
             #endif
             
             return;
         }
-    }
+    }      
 
-    /* compare CO2 response command(133) against, last response command (162)*/
-    for (byte i = 2; i < 8; i++)
+    /* compare CO2 & temp bytes, command(133), against last response bytes, command (162)*/
+    for (byte i = 2; i < 6; i++)
     {
-        if (this->storage.responses.TEMPUNLIM[i] != this->storage.responses.STAT[i])
+        if (this->storage.responses.CO2UNLIM[i] != this->storage.responses.STAT[i])
         {
             #if defined (ESP32) && (MHZ19_ERRORS)
-            ESP_LOGE(TAG_MHZ19, "Last response was not found, call back failed. Failed to stablise");   
+            ESP_LOGE(TAG_MHZ19, "Last response is not as expected, verification failed.");   
             #elif MHZ19_ERRORS
-            Serial.println("!ERROR: Last response was not found, call back failed. Failed to stablise");
+            Serial.println("!ERROR: Last response is not as expected, verification failed.");
             #endif
 
             return;
@@ -537,9 +537,9 @@ void MHZ19::constructCommand(Command_Type commandtype, int inData)
         break;
     case RAWCO2:
         break;
-    case TEMPUNLIM:
+    case CO2UNLIM:
         break;
-    case TEMPLIM:
+    case CO2LIM:
         break;
     case ZEROCAL:
         if (inData)
@@ -647,10 +647,10 @@ void MHZ19::handleResponse(Command_Type commandtype)
         read(this->storage.responses.RAW, commandtype);            // returns error number, passes back response and inputs command
 
     else if (this->storage.constructedCommand[2] == Commands[3])
-        read(this->storage.responses.TEMPUNLIM, commandtype);
+        read(this->storage.responses.CO2UNLIM, commandtype);
 
     else if (this->storage.constructedCommand[2] == Commands[4])
-        read(this->storage.responses.TEMPLIM, commandtype);
+        read(this->storage.responses.CO2LIM, commandtype);
 
     else
         read(this->storage.responses.STAT, commandtype);
@@ -661,7 +661,6 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
     if (pserrorCode != RESULT_OK && isSent == false)
     {
         Serial.print("Recieved >> ");
-
         if (this->storage.settings._isDec)
         {
             Serial.print("DEC: ");
@@ -671,7 +670,6 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
                 Serial.print(" ");
             }
         }
-
         else
         {
             for (uint8_t i = 0; i < 9; i++)
@@ -683,7 +681,6 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
                 Serial.print(" ");
             }
         }
-
         Serial.print("ERROR Code: ");
         Serial.println(pserrorCode);
     }
@@ -701,10 +698,8 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
                 Serial.print(" ");
             }
         }
-
         else
         {
-
             for (uint8_t i = 0; i < 9; i++)
             {
                 Serial.print("0x");

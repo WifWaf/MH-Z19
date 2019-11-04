@@ -1,7 +1,7 @@
 /* -------------------------------------------------
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.4.3
+  Version: 1.4.4
 
   License: CC BY-NC-SA 3.0
 
@@ -108,7 +108,7 @@ class MHZ19
 	/*######################-Utility Functions-########################*/
 
 	/* ensure communication is working (included in begin())*/
-	void stablise();
+	void verify();
 
 	/* disables calibration or sets ABCPeriod */
 	void autoCalibration(bool isON = true, byte ABCPeriod = 24);

@@ -1,7 +1,7 @@
 /* -------------------------------------------------
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.4.3
+  Version: 1.4.4
 
   License: LGPLv3
 
@@ -105,7 +105,7 @@ class MHZ19
 	/*######################-Utility Functions-########################*/
 
 	/* ensure communication is working (included in begin())*/
-	void stablise();
+	void verify();
 
 	/* disables calibration or sets ABCPeriod */
 	void autoCalibration(bool isON = true, byte ABCPeriod = 24);
@@ -129,15 +129,15 @@ class MHZ19
 	typedef enum COMMAND_TYPE
 	{
 		RECOVER = 0,	  	// 0 Recovery Reset
-		ABC = 1,			    // 1 ABC Mode ON/OFF
+		ABC = 1,		    // 1 ABC Mode ON/OFF
 		RAWCO2 = 2,		  	// 2 Raw CO2
-		TEMPUNLIM = 3,    // 3 Temp float, CO2 Unlimited
-		TEMPLIM = 4,	  	// 4 Temp integer, CO2 limited
+		CO2UNLIM = 3,       // 3 Temp for unsigned, CO2 Unlimited
+		CO2LIM = 4,	     	// 4 Temp for signed, CO2 limited
 		ZEROCAL = 5,	  	// 5 Zero Calibration
 		SPANCAL = 6,	  	// 6 Span Calibration
 		RANGE = 7,		  	// 7 Range
-		GETRANGE = 8,		  // 8 Get Range
-		GETCALPPM = 9,	  // 9 Get Background CO2
+		GETRANGE = 8,	    // 8 Get Range
+		GETCALPPM = 9,	    // 9 Get Background CO2
 		GETFIRMWARE = 10,	// 10 Get Firmware Version
 		GETLASTRESP = 11,	// 11 Get Last Response
 		GETEMPCAL = 12 		// 12 Get Temp Calibration
@@ -148,21 +148,21 @@ class MHZ19
 	{
 		struct config
 		{
-			bool ABCRepeat = false;  						// A flag which represents whether autocalibration ABC period was checked
-			bool filterMode = false; 						// Flag set by setFilter() to signify is "filter mode" was made active
+			bool ABCRepeat = false;  					// A flag which represents whether autocalibration ABC period was checked
+			bool filterMode = false; 					// Flag set by setFilter() to signify is "filter mode" was made active
 			bool filterCleared = true;  				// Additional flag set by setFiler() to store which mode was selected			
 			bool printcomm = false; 				    // Communication print options
-			bool _isDec = true;									// Holds preferance for communication printing
+			bool _isDec = true;							// Holds preferance for communication printing
 		} settings;
 
-		byte constructedCommand[9];					// holder for new commands which are to be sent
+		byte constructedCommand[9];				    	// holder for new commands which are to be sent
 
 		struct indata
 		{
-			byte TEMPUNLIM[9];		// Holds command 133 response values "temperature unlimited"
-			byte TEMPLIM[9];	  	// Holds command 134 response values "temperature limited"
-			byte RAW[9];			    // Holds command 132 response values "CO2 Raw"
-			byte STAT[9];			    // Holds other command response values such as range, background CO2 etc
+			byte CO2UNLIM[9];		// Holds command 133 response values "CO2 unlimited and temperature for unsigned"
+			byte CO2LIM[9];	     	// Holds command 134 response values "CO2 limited and temperature for signed"
+			byte RAW[9];		    // Holds command 132 response values "CO2 Raw"
+			byte STAT[9];		    // Holds other command response values such as range, background CO2 etc
 		} responses;
 
 	} storage;
