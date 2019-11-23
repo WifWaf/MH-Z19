@@ -1,35 +1,34 @@
 #include <Arduino.h>
-#include "MHZ19.h"                                         // include main library
-#include <SoftwareSerial.h>                                // Remove if using HardwareSerial or non-uno library compatable device
+#include "MHZ19.h"                                        
+#include <SoftwareSerial.h>                                // Remove if using HardwareSerial or Arduino package without SoftwareSerial support
 
 #define RX_PIN 10                                          // Rx pin which the MHZ19 Tx pin is attached to
 #define TX_PIN 11                                          // Tx pin which the MHZ19 Rx pin is attached to
-#define BAUDRATE 9600                                      // Native to the sensor (do not change)
+#define BAUDRATE 9600                                      // Device to MH-Z19 Serial baudrate (should not be changed)
 
-MHZ19 myMHZ19;                                             // Constructor for MH-Z19 class
-SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // Uno example
-//HardwareSerial mySerial(1);                              // ESP32 Example
+MHZ19 myMHZ19;                                             // Constructor for library
 
-unsigned long getDataTimer = 0;                             // Variable to store timer interval
+SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // (Uno example) create device to MH-Z19 serial
+//HardwareSerial mySerial(1);                              // (ESP32 Example) create device to MH-Z19 serial
+
+unsigned long getDataTimer = 0;
 
 void setup()
 {
-    Serial.begin(9600);                                     // For ESP32 baudarte is 115200 etc.
+    Serial.begin(9600);                                     // Device to serial monitor feedback
 
-    mySerial.begin(BAUDRATE);                               // Uno example: Begin Stream with MHZ19 baudrate
-    
-    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 Example
+    mySerial.begin(BAUDRATE);                               // (Uno example) device to MH-Z19 serial start   
+    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // (ESP32 Example) device to MH-Z19 serial start   
+    myMHZ19.begin(mySerial);                                // *Serial(Stream) refence must be passed to library begin(). 
 
-    myMHZ19.begin(mySerial);                                // *Important, Pass your Stream reference 
-
-    myMHZ19.autoCalibration();                              // Turn auto calibration ON (disable with autoCalibration(false))
+    myMHZ19.autoCalibration();                              // Turn auto calibration ON (OFF autoCalibration(false))
 }
 
 void loop()
 {
-    if (millis() - getDataTimer >= 2000)                    // Check if interval has elapsed (non-blocking delay() equivilant)
+    if (millis() - getDataTimer >= 2000)
     {
-        int CO2;                                            // Buffer for CO2
+        int CO2; 
 
         /* note: getCO2() default is command "CO2 Unlimited". This returns the correct CO2 reading even 
         if below background CO2 levels or above range (useful to validate sensor). You can use the 
@@ -40,11 +39,11 @@ void loop()
         Serial.print("CO2 (ppm): ");                      
         Serial.println(CO2);                                
 
-        int8_t Temp;                                         // Buffer for temperature
+        int8_t Temp;
         Temp = myMHZ19.getTemperature();                     // Request Temperature (as Celsius)
         Serial.print("Temperature (C): ");                  
         Serial.println(Temp);                               
 
-        getDataTimer = millis();                            // Update interval
+        getDataTimer = millis();
     }
 }

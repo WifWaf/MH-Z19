@@ -61,13 +61,13 @@ void loop()
 
         if (CO2 < 390 || CO2 > 2000)
         {
-            Serial.println("Waiting for stablisation....");
+            Serial.println("Waiting for verification....");
 
             timeout++;
 
             if (timeout > 20)
             {
-                Serial.println("Failed to stablise.");
+                Serial.println("Failed to verify.");
                 Serial.println("Requesting MHZ19 reset sequence");
 
                 myMHZ19.recoveryReset();                                            // Recovery Reset
@@ -77,11 +77,11 @@ void loop()
 
                 delay(30000);       
                 
-                Serial.println("Waiting for boot stabisation...");
+                Serial.println("Waiting for boot verification...");
 
                 for (byte i = 0; i < 3; i++)
                 {
-                    myMHZ19.stablise();                                              // Stablisation check
+                    myMHZ19.verify();                                              // verification check
 
                     if (myMHZ19.errorCode == RESULT_OK)
                         break;
@@ -99,7 +99,7 @@ void loop()
 
         else
         {
-            Serial.println("Stabalised! Please upload a new sketch to avoid repeat recovery.");
+            Serial.println("Verified! Please upload a new sketch to avoid repeat recovery.");
  
             timeout = 0;                                // Rest Timeout Counter
 
