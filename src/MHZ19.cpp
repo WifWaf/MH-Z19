@@ -598,8 +598,11 @@ byte MHZ19::read(byte inBytes[9], Command_Type commandnumber)
     /* prepare errorCode */
     this->errorCode = RESULT_NULL;
 
-    /* wait for response, allow for defined time before exit */
-    while (mySerial->available() <= 0)
+    /* wait until we have exactly the 9 bytes reply
+    this used to be <= 0 but then on very fast controlles such as the ESP only 1 bytes was read
+    as the transmission is on a slow 9600 and the system did not wait on the rest...
+    */
+    while (mySerial->available() < 9)
     {
         if (millis() - timeStamp >= TIMEOUT_PERIOD) 
         {
@@ -610,6 +613,20 @@ byte MHZ19::read(byte inBytes[9], Command_Type commandnumber)
             #endif  
 
             this->errorCode = RESULT_TIMEOUT;
+            /*flush all remaining characters so not to mess up the sync.
+              We want to avoid an endless loop (if the device would be streaming continiously due to an error),
+              so just flushing the chars that ware initially in the buffer */
+            inBytes[1] = mySerial->available();
+            for(uint8_t x = 0; x < inBytes[1]; x++)
+            {
+            inBytes[0] = mySerial->read();
+            #if defined (ESP32) && (MHZ19_ERRORS) 
+            ESP_LOGW(TAG_MHZ19, "Clearing Byte: %d", inBytes[0]);  
+            #elif MHZ19_ERRORS
+            Serial.print("!Warning: Clearing Byte: "); Serial.println(inBytes[0]);
+            #endif     
+            }
+            //return error condition
             return RESULT_TIMEOUT;
         }
     }
