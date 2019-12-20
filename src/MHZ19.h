@@ -1,7 +1,7 @@
 /* -------------------------------------------------
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.4.4
+  Version: 1.5.0
 
   License: LGPLv3
 
@@ -25,6 +25,9 @@
 /* For range mode,  */
 #define DEFAULT_RANGE 2000     // MH-Z19 works best in this range
 
+/* data sequence length */
+#define MHZ19_DATA_LEN 9 
+
 /* enum alias for error code defintions */
 enum ERRORCODE
 {
@@ -33,8 +36,7 @@ enum ERRORCODE
 	RESULT_TIMEOUT = 2,
 	RESULT_MATCH = 3,
 	RESULT_CRC = 4,
-	RESULT_FILTER = 5,
-	RESULT_FAILED = 6
+	RESULT_FILTER = 5
 };
 
 class MHZ19
@@ -155,14 +157,14 @@ class MHZ19
 			bool _isDec = true;							// Holds preferance for communication printing
 		} settings;
 
-		byte constructedCommand[9];				    	// holder for new commands which are to be sent
+		byte constructedCommand[MHZ19_DATA_LEN];				    	// holder for new commands which are to be sent
 
 		struct indata
 		{
-			byte CO2UNLIM[9];		// Holds command 133 response values "CO2 unlimited and temperature for unsigned"
-			byte CO2LIM[9];	     	// Holds command 134 response values "CO2 limited and temperature for signed"
-			byte RAW[9];		    // Holds command 132 response values "CO2 Raw"
-			byte STAT[9];		    // Holds other command response values such as range, background CO2 etc
+			byte CO2UNLIM[MHZ19_DATA_LEN];		// Holds command 133 response values "CO2 unlimited and temperature for unsigned"
+			byte CO2LIM[MHZ19_DATA_LEN];	     	// Holds command 134 response values "CO2 limited and temperature for signed"
+			byte RAW[MHZ19_DATA_LEN];		    // Holds command 132 response values "CO2 Raw"
+			byte STAT[MHZ19_DATA_LEN];		    // Holds other command response values such as range, background CO2 etc
 		} responses;
 
 	} storage;

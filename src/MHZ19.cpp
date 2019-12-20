@@ -1,7 +1,7 @@
 /* -------------------------------------------------
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.4.4
+  Version: 1.5.0
 
   License: LGPLv3
 
@@ -512,11 +512,11 @@ void MHZ19::constructCommand(Command_Type commandtype, int inData)
     byte Low;
 
     /* Temporary holder */
-    byte asemblecommand[9];
+    byte asemblecommand[MMHZ19_DATA_LEN];
 
     /* prepare arrays */
-    memset(asemblecommand, 0, 9);
-    memset(this->storage.constructedCommand, 0, 9);
+    memset(asemblecommand, 0, MMHZ19_DATA_LEN);
+    memset(this->storage.constructedCommand, 0, MMHZ19_DATA_LEN);
 
     /* set address to 'any' */
     asemblecommand[0] = 255; ///(0xFF) 255/FF means 'any' address (where the sensor is located)
@@ -571,7 +571,7 @@ void MHZ19::constructCommand(Command_Type commandtype, int inData)
     asemblecommand[8] = getCRC(asemblecommand);
 
     /* copy bytes from asemblecommand to constructedCommand */
-    memcpy(this->storage.constructedCommand, asemblecommand, 9);
+    memcpy(this->storage.constructedCommand, asemblecommand, MMHZ19_DATA_LEN);
 }
 
 void MHZ19::write(byte toSend[])
@@ -581,19 +581,19 @@ void MHZ19::write(byte toSend[])
         printstream(toSend, true, this->errorCode);
 
     /* transfer to buffer */
-    mySerial->write(toSend, 9); 
+    mySerial->write(toSend, MMHZ19_DATA_LEN); 
  
     /* send */
     mySerial->flush(); 
 }
 
-byte MHZ19::read(byte inBytes[9], Command_Type commandnumber)
+byte MHZ19::read(byte inBytes[MMHZ19_DATA_LEN], Command_Type commandnumber)
 {
     /* loop escape */
     unsigned long timeStamp = millis();
 
     /* prepare memory array with unsigned chars of 0 */
-    memset(inBytes, 0, 9);
+    memset(inBytes, 0, MMHZ19_DATA_LEN);
 
     /* prepare errorCode */
     this->errorCode = RESULT_NULL;
@@ -602,7 +602,7 @@ byte MHZ19::read(byte inBytes[9], Command_Type commandnumber)
     this used to be <= 0 but then on very fast controlles such as the ESP only 1 bytes was read
     as the transmission is on a slow 9600 and the system did not wait on the rest...
     */
-    while (mySerial->available() < 9)
+    while (mySerial->available() < MMHZ19_DATA_LEN)
     {
         if (millis() - timeStamp >= TIMEOUT_PERIOD) 
         {
@@ -632,7 +632,7 @@ byte MHZ19::read(byte inBytes[9], Command_Type commandnumber)
     }
     
     /* response recieved, read buffer */
-    mySerial->readBytes(inBytes, 9);
+    mySerial->readBytes(inBytes, MMHZ19_DATA_LEN);
 
     if (this->errorCode == RESULT_TIMEOUT)
         return this->errorCode;
@@ -673,7 +673,7 @@ void MHZ19::handleResponse(Command_Type commandtype)
         read(this->storage.responses.STAT, commandtype);
 }
 
-void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
+void MHZ19::printstream(byte inBytes[MMHZ19_DATA_LEN], bool isSent, byte pserrorCode)
 {
     if (pserrorCode != RESULT_OK && isSent == false)
     {
@@ -681,7 +681,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
         if (this->storage.settings._isDec)
         {
             Serial.print("DEC: ");
-            for (uint8_t i = 0; i < 9; i++)
+            for (uint8_t i = 0; i < MMHZ19_DATA_LEN; i++)
             {
                 Serial.print(inBytes[i]);
                 Serial.print(" ");
@@ -689,7 +689,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
         }
         else
         {
-            for (uint8_t i = 0; i < 9; i++)
+            for (uint8_t i = 0; i < MMHZ19_DATA_LEN; i++)
             {
                 Serial.print("0x");
                 if (inBytes[i] < 16)
@@ -709,7 +709,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
         if (this->storage.settings._isDec)
         {
             Serial.print("DEC: ");
-            for (uint8_t i = 0; i < 9; i++)
+            for (uint8_t i = 0; i < MMHZ19_DATA_LEN; i++)
             {
                 Serial.print(inBytes[i]);
                 Serial.print(" ");
@@ -717,7 +717,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
         }
         else
         {
-            for (uint8_t i = 0; i < 9; i++)
+            for (uint8_t i = 0; i < MMHZ19_DATA_LEN; i++)
             {
                 Serial.print("0x");
                 if (inBytes[i] < 16)
