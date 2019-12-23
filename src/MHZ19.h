@@ -67,6 +67,9 @@ class MHZ19
 	void setFilter(bool isON = true, bool isCleared = true);
  
 	/*########################-Get Functions-##########################*/
+	
+	/* reads ABC-Status using command 125 / 0x7D */
+	int getABC();
 
 	/* request CO2 values, 2 types of CO2 can be returned, isLimted = true (command 134) and is Limited = false (command 133) */
 	int getCO2(bool isunLimited = true, bool force = true);
@@ -131,18 +134,19 @@ class MHZ19
 	typedef enum COMMAND_TYPE
 	{
 		RECOVER = 0,	  	// 0 Recovery Reset
-		ABC = 1,		    // 1 ABC Mode ON/OFF
-		RAWCO2 = 2,		  	// 2 Raw CO2
-		CO2UNLIM = 3,       // 3 Temp for unsigned, CO2 Unlimited
-		CO2LIM = 4,	     	// 4 Temp for signed, CO2 limited
-		ZEROCAL = 5,	  	// 5 Zero Calibration
-		SPANCAL = 6,	  	// 6 Span Calibration
-		RANGE = 7,		  	// 7 Range
-		GETRANGE = 8,	    // 8 Get Range
-		GETCALPPM = 9,	    // 9 Get Background CO2
-		GETFIRMWARE = 10,	// 10 Get Firmware Version
-		GETLASTRESP = 11,	// 11 Get Last Response
-		GETEMPCAL = 12 		// 12 Get Temp Calibration
+		ABC = 1,		// 1 ABC Mode ON/OFF
+		GETABC = 2,		// 2 Get ABC - Status 0x79
+		RAWCO2 = 3,		// 3 Raw CO2
+		CO2UNLIM = 4,           // 4 Temp for unsigned, CO2 Unlimited
+		CO2LIM = 5,	     	// 5 Temp for signed, CO2 limited
+		ZEROCAL = 6,	  	// 6 Zero Calibration
+		SPANCAL = 7,	  	// 7 Span Calibration
+		RANGE = 8,		// 8 Range
+		GETRANGE = 9,	        // 9 Get Range
+		GETCALPPM = 10,	        // 10 Get Background CO2
+		GETFIRMWARE = 11,	// 11 Get Firmware Version
+		GETLASTRESP = 12,	// 12 Get Last Response
+		GETEMPCAL = 13 		// 13 Get Temp Calibration
 	} Command_Type;
 
 	/* Memory Pool */
@@ -150,21 +154,21 @@ class MHZ19
 	{
 		struct config
 		{
-			bool ABCRepeat = false;  					// A flag which represents whether autocalibration ABC period was checked
-			bool filterMode = false; 					// Flag set by setFilter() to signify is "filter mode" was made active
-			bool filterCleared = true;  				// Additional flag set by setFiler() to store which mode was selected			
-			bool printcomm = false; 				    // Communication print options
-			bool _isDec = true;							// Holds preferance for communication printing
+			bool ABCRepeat = false;  		// A flag which represents whether autocalibration ABC period was checked
+			bool filterMode = false; 		// Flag set by setFilter() to signify is "filter mode" was made active
+			bool filterCleared = true;  		// Additional flag set by setFiler() to store which mode was selected			
+			bool printcomm = false; 		// Communication print options
+			bool _isDec = true;			// Holds preferance for communication printing
 		} settings;
 
-		byte constructedCommand[MHZ19_DATA_LEN];				    	// holder for new commands which are to be sent
+		byte constructedCommand[MHZ19_DATA_LEN];	// holder for new commands which are to be sent
 
 		struct indata
 		{
 			byte CO2UNLIM[MHZ19_DATA_LEN];		// Holds command 133 response values "CO2 unlimited and temperature for unsigned"
 			byte CO2LIM[MHZ19_DATA_LEN];	     	// Holds command 134 response values "CO2 limited and temperature for signed"
-			byte RAW[MHZ19_DATA_LEN];		    // Holds command 132 response values "CO2 Raw"
-			byte STAT[MHZ19_DATA_LEN];		    // Holds other command response values such as range, background CO2 etc
+			byte RAW[MHZ19_DATA_LEN];		// Holds command 132 response values "CO2 Raw"
+			byte STAT[MHZ19_DATA_LEN];		// Holds other command response values such as range, background CO2 etc
 		} responses;
 
 	} storage;
