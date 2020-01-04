@@ -96,7 +96,8 @@ void setup()
        autoCalibration(true, 12) - turns autocalibration ON and calibration period to 12 hrs (maximum 24hrs).
     */
 
-    myMHZ19.autoCalibration(false);  
+    myMHZ19.autoCalibration(false);
+    Serial.print("ABC Status: "); myMHZ19.getABC() ? Serial.println("ON") :  Serial.println("OFF");  
                                     
 }
 

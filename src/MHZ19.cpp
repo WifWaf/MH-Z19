@@ -1,7 +1,7 @@
 /* -------------------------------------------------
   Author: Jonathan Dempsey JDWifWaf@gmail.com
   
-  Version: 1.5.0
+  Version: 1.5.2
 
   License: LGPLv3
 
@@ -13,20 +13,20 @@
 /*#########################-Commands-##############################*/
 
 byte Commands[14] = {
-    120, // 0 Recovery Reset        Changes operation mode and performs MCU reset
-    121, // 1 ABC Mode ON/OFF       Turns ABC logic on or off (b[3] == 0xA0 - on, 0x00 - off)
-    125, // 2 Get ABC logic status  (1 - enabled, 0 - disabled)	
-    132, // 3 Raw CO2
-    133, // 4 Temp float, CO2 Unlimited
-    134, // 5 Temp integer, CO2 limited
-    135, // 6 Zero Calibration
-    136, // 7 Span Calibration
-    153, // 8 Range
-    155, // 9 Get Range
-    156, // 10 Get Background CO2
-    160, // 11 Get Firmware Version
-    162, // 12 Get Last Response
-    163  // 13 Get Temp Calibration
+    120,	// 0 Recovery Reset        Changes operation mode and performs MCU reset
+    121,	// 1 ABC Mode ON/OFF       Turns ABC logic on or off (b[3] == 0xA0 - on, 0x00 - off)
+    125,	// 2 Get ABC logic status  (1 - enabled, 0 - disabled)	
+    132,	// 3 Raw CO2
+    133,	// 4 Temp float, CO2 Unlimited
+    134,	// 5 Temp integer, CO2 limited
+    135,	// 6 Zero Calibration
+    136,	// 7 Span Calibration
+    153,	// 8 Range
+    155,	// 9 Get Range
+    156,	// 10 Get Background CO2
+    160,	// 11 Get Firmware Version
+    162,	// 12 Get Last Response
+    163		// 13 Get Temp Calibration
 };
 
 /*#####################-Initiation Functions-#####################*/
@@ -215,7 +215,7 @@ float MHZ19::getTemperature(bool isFloat, bool force)
         if(!isSet)
         {
             provisioning(CO2LIM);
-            byte buff = (this->storage.responses.CO2LIM[4] - 38);
+            byte buff = (this->storage.responses.CO2LIM[4] - TEMP_ADJUST);
 
             baseTemp = buff - (byte)getTemperatureOffset(true);
             isSet = true;
@@ -238,7 +238,7 @@ float MHZ19::getTemperature(bool isFloat, bool force)
             provisioning(CO2LIM);
 
         if (this->errorCode == RESULT_OK || force == false)
-            return (this->storage.responses.CO2LIM[4] - 38);
+            return (this->storage.responses.CO2LIM[4] - TEMP_ADJUST);
     }
     
     return -273.15;    
@@ -272,18 +272,6 @@ int MHZ19::getRange()
 
     else
         return 0;
-}
-
-int MHZ19::getABC()
-{
-    /* check get ABC logic status (1 - enabled, 0 - disabled) */
-    provisioning(GETABC);
-
-    if (this->errorCode == RESULT_OK)
-        /* convert MH-Z19 memory value and return */
-        return this->storage.responses.STAT[7];
-    else
-        return 1;
 }
 
 byte MHZ19::getAccuracy(bool force)
@@ -335,7 +323,7 @@ byte MHZ19::getTempAdjustment()
 {
     provisioning(GETEMPCAL);
 
-    /* 40 is returned here, however this library deductes -2 
+    /* 40 is returned here, however this library uses TEMP_ADJUST 
      when using temperature function as it appears inaccurate, 
     */
 
@@ -355,6 +343,18 @@ byte MHZ19::getLastResponse(byte bytenum)
 
     else
         return 0;
+}
+
+bool MHZ19::getABC()
+{
+    /* check get ABC logic status (1 - enabled, 0 - disabled) */
+    provisioning(GETABC);
+
+    if (this->errorCode == RESULT_OK)
+        /* convert MH-Z19 memory value and return */
+        return this->storage.responses.STAT[7];
+    else
+        return 1;
 }
 
 /*######################-Utility Functions-########################*/
@@ -570,8 +570,6 @@ void MHZ19::constructCommand(Command_Type commandtype, int inData)
         break;
     case GETRANGE:
         break;
-    case GETABC:
-        break;
     case GETCALPPM:
         break;
     case GETFIRMWARE:
@@ -613,10 +611,7 @@ byte MHZ19::read(byte inBytes[MHZ19_DATA_LEN], Command_Type commandnumber)
     /* prepare errorCode */
     this->errorCode = RESULT_NULL;
 
-    /* wait until we have exactly the 9 bytes reply
-    this used to be <= 0 but then on very fast controlles such as the ESP only 1 bytes was read
-    as the transmission is on a slow 9600 and the system did not wait on the rest...
-    */
+    /* wait until we have exactly the 9 bytes reply (certain controllers call read() too fast) */
     while (mySerial->available() < MHZ19_DATA_LEN)
     {
         if (millis() - timeStamp >= TIMEOUT_PERIOD) 
@@ -628,18 +623,17 @@ byte MHZ19::read(byte inBytes[MHZ19_DATA_LEN], Command_Type commandnumber)
             #endif  
 
             this->errorCode = RESULT_TIMEOUT;
-            /*flush all remaining characters so not to mess up the sync.
-              We want to avoid an endless loop (if the device would be streaming continiously due to an error),
-              so just flushing the chars that ware initially in the buffer */
+            
+            /* clear incomplete 9 byte values, limit is finite */
             inBytes[1] = mySerial->available();
             for(uint8_t x = 0; x < inBytes[1]; x++)
             {
-            inBytes[0] = mySerial->read();
-            #if defined (ESP32) && (MHZ19_ERRORS) 
-            ESP_LOGW(TAG_MHZ19, "Clearing Byte: %d", inBytes[0]);  
-            #elif MHZ19_ERRORS
-            Serial.print("!Warning: Clearing Byte: "); Serial.println(inBytes[0]);
-            #endif     
+                inBytes[0] = mySerial->read();
+                #if defined (ESP32) && (MHZ19_ERRORS) 
+                ESP_LOGW(TAG_MHZ19, "Clearing Byte: %d", inBytes[0]);  
+                #elif MHZ19_ERRORS
+                Serial.print("!Warning: Clearing Byte: "); Serial.println(inBytes[0]);
+                #endif     
             }
             //return error condition
             return RESULT_TIMEOUT;
@@ -675,13 +669,13 @@ byte MHZ19::read(byte inBytes[MHZ19_DATA_LEN], Command_Type commandnumber)
 
 void MHZ19::handleResponse(Command_Type commandtype)
 {
-    if (this->storage.constructedCommand[2] == Commands[3])      // compare commands byte
-        read(this->storage.responses.RAW, commandtype);            // returns error number, passes back response and inputs command
+    if (this->storage.constructedCommand[2] == Commands[RAWCO2])	// compare commands byte
+        read(this->storage.responses.RAW, commandtype);				// returns error number, passes back response and inputs command
 
-    else if (this->storage.constructedCommand[2] == Commands[4])
+    else if (this->storage.constructedCommand[2] == Commands[CO2UNLIM])
         read(this->storage.responses.CO2UNLIM, commandtype);
 
-    else if (this->storage.constructedCommand[2] == Commands[5])
+    else if (this->storage.constructedCommand[2] == Commands[CO2LIM])
         read(this->storage.responses.CO2LIM, commandtype);
 
     else

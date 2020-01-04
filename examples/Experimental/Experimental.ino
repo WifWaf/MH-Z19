@@ -68,9 +68,6 @@ void loop()
         Serial.print("Transmittance: ");
         Serial.print(myMHZ19.getTransmittance(), 7);         // 7 decimals for float/double maximum Arduino accuracy
         Serial.println(" %");
-        Serial.print("Temp Offset: ");
-        Serial.print(myMHZ19.getTemperatureOffset(), 2);
-        Serial.println(" C");
         Serial.print("Temp Float: ");
         Serial.print(myMHZ19.getTemperature(true,true), 2); 
         Serial.println(" C");
