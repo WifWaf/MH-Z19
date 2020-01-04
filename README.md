@@ -1,37 +1,36 @@
 ﻿![Version](https://img.shields.io/badge/Version-v1.5.2-green.svg)
 
-> See extras for I2C version using the SC16IS750 UART bridge.
+> See extras for I2C version using the SC16IS750 UART bridge (slightly outdated, can be updated on request).
 
 # MH-Z19 & MH-Z19B
 
 A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlocks significant commands. Supports Hardware/Softeware serial and arduino based boads.
 
 ### Features
-* Automatically sends "autocalibration off" command calculated upon period enetered.
-* Option to print communcation between device and sensor (for debugging)
-* Transmittance calculation % - when using 5v only power. 
-* CO2 via Analog Out (non-PWM) examples 
+* Automatically sends "autocalibration off".
 * Filter mode, to detect invalid readings when sensor is recovering from power loss / boot (see example)
+* Option to print communcation between device and sensor (for debugging)
+* Communication error checking
+* Examples
 
 >^*Transmittance is based upon the backwards projection of the raw value (which decreases with CO2) - see examples or [My Notes (Ravings)](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
 
 ### Commands
 ---
 
-|             Additions               |            Existing           |          Testing                  |
-|              :---:                  |              :---:            |          :---:                    |
-| CO2 Unlimited                       | CO2 Limited                   |  Temp @ 0.06C° Resolution         |
-| CO2 as Raw                          | Temperature as Whole Integer  | ^Please test the above! See Experimental |
-| Custom Range / Span                 | Request CO2 Calibration       |  Custom ABC                       |
-| Reset Sensor                        | ABC On / Off                  |  Zero Calibration (range byte)   |
-| ^Get Temperature Offset (float)     | Retrieve Accuracy             |
-| ^Get Temperature Adjustment         |                               |
+|             Additions               |            Existing           |          Testing                         |
+|              :---:                  |              :---:            |          :---:                           |
+| CO2 Unlimited                       | CO2 Limited                   |  Temp @ 0.06C° Resolution                |
+| CO2 as Raw                          | Temperature as Whole Integer  | (please test the above, see Experimental) |
+| Custom Range / Span                 | Request CO2 Calibration       |  Custom ABC                              |
+| Reset Sensor                        | ABC On / Off                  |  Zero Calibration (range byte)           |
+| Get Temperature Adjustment          | Retrieve Accuracy             |
 | Get Firmware Version                |                               |     
 | Get Background CO2 Value            |                               |
 | Get Range Value                     |                               |
 | Get Last Response                   |                               |
->^* The difference here is that the offset is used can be ysed obtain a float value of temperature. The adjustment
-is the value the standard value used to obtain the non-decimal value - unclear why. Note - the library uses 38 instead as 40 appears incorrect.
+| ^Get ABC Status                     |
+>^* submitted by SFeli
 
 ### "Usage"
 ---
