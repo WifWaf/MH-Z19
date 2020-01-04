@@ -12,20 +12,21 @@
 
 /*#########################-Commands-##############################*/
 
-byte Commands[13] = {
-    120, // 0 Recovery Reset
-    121, // 1 ABC Mode ON/OFF
-    132, // 2 Raw CO2
-    133, // 3 Temp float, CO2 Unlimited
-    134, // 4 Temp integer, CO2 limited
-    135, // 5 Zero Calibration
-    136, // 6 Span Calibration
-    153, // 7 Range
-    155, // 8 Get Range
-    156, // 9 Get Background CO2
-    160, // 10 Get Firmware Version
-    162, // 11 Get Last Response
-    163  // 12 Get Temp Calibration
+byte Commands[14] = {
+    120, // 0 Recovery Reset        Changes operation mode and performs MCU reset
+    121, // 1 ABC Mode ON/OFF       Turns ABC logic on or off (b[3] == 0xA0 - on, 0x00 - off)
+    125, // 2 Get ABC logic status  (1 - enabled, 0 - disabled)	
+    132, // 3 Raw CO2
+    133, // 4 Temp float, CO2 Unlimited
+    134, // 5 Temp integer, CO2 limited
+    135, // 6 Zero Calibration
+    136, // 7 Span Calibration
+    153, // 8 Range
+    155, // 9 Get Range
+    156, // 10 Get Background CO2
+    160, // 11 Get Firmware Version
+    162, // 12 Get Last Response
+    163  // 13 Get Temp Calibration
 };
 
 /*#####################-Initiation Functions-#####################*/
@@ -271,6 +272,18 @@ int MHZ19::getRange()
 
     else
         return 0;
+}
+
+int MHZ19::getABC()
+{
+    /* check get ABC logic status (1 - enabled, 0 - disabled) */
+    provisioning(GETABC);
+
+    if (this->errorCode == RESULT_OK)
+        /* convert MH-Z19 memory value and return */
+        return this->storage.responses.STAT[7];
+    else
+        return 1;
 }
 
 byte MHZ19::getAccuracy(bool force)
@@ -557,6 +570,8 @@ void MHZ19::constructCommand(Command_Type commandtype, int inData)
         break;
     case GETRANGE:
         break;
+    case GETABC:
+        break;
     case GETCALPPM:
         break;
     case GETFIRMWARE:
@@ -660,13 +675,13 @@ byte MHZ19::read(byte inBytes[MHZ19_DATA_LEN], Command_Type commandnumber)
 
 void MHZ19::handleResponse(Command_Type commandtype)
 {
-    if (this->storage.constructedCommand[2] == Commands[2])      // compare commands byte
+    if (this->storage.constructedCommand[2] == Commands[3])      // compare commands byte
         read(this->storage.responses.RAW, commandtype);            // returns error number, passes back response and inputs command
 
-    else if (this->storage.constructedCommand[2] == Commands[3])
+    else if (this->storage.constructedCommand[2] == Commands[4])
         read(this->storage.responses.CO2UNLIM, commandtype);
 
-    else if (this->storage.constructedCommand[2] == Commands[4])
+    else if (this->storage.constructedCommand[2] == Commands[5])
         read(this->storage.responses.CO2LIM, commandtype);
 
     else
