@@ -79,7 +79,7 @@ void MHZ19::setSpan(int span)
         #endif 
     }
     else
-        provisioning(SPANCAL);
+        provisioning(SPANCAL, span);
  
     return;
 }
