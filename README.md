@@ -3,10 +3,12 @@
 > See extras for I2C version using the SC16IS750 UART bridge (slightly outdated, can be updated on request).
 
 # MH-Z19 & MH-Z19B
-
 A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlocks significant commands. Supports Hardware/Softeware serial and arduino based boads.
 
-### Features
+### Recovery for Dysfunctional Sensors:
+See examples for the recovery code. *Note, Only use if your sensor is not recoverable by other means as it is somewhat untested, however from feedback and personal experience, it can often work.
+
+### Features:
 * Automatically sends "autocalibration off".
 * Filter mode, to detect invalid readings when sensor is recovering from power loss / boot (see example)
 * Option to print communcation between device and sensor (for debugging)
