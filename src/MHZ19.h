@@ -71,7 +71,7 @@ class MHZ19
 	int getCO2(bool isunLimited = true, bool force = true);
 
 	/* returns the "raw" CO2 value of unknown units */
-	float getCO2Raw(bool force = true);
+	int getCO2Raw(bool force = true);
 
 	/* returns Raw CO2 value as a % of transmittance */		//<--- needs work to understand
 	float getTransmittance(bool force = true);
