@@ -177,7 +177,7 @@ int MHZ19::getCO2(bool isunLimited, bool force)
     return 0;
 }
 
-float MHZ19::getCO2Raw(bool force)
+int MHZ19::getCO2Raw(bool force)
 {
     if (force == true)
         provisioning(RAWCO2);
