@@ -3,7 +3,10 @@
    
    This sequence goes through the standard setup and will attempt
    to reset the device if there is an issue and repeat untill a rational
-   result is given.*/
+   result is given.
+    
+   *Note - it can take a few reset cycles for recovery.
+*/
 
 #include <Arduino.h>
 #include "MHZ19.h"

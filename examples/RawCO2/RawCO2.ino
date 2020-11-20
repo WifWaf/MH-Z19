@@ -54,12 +54,12 @@ void loop()
 
     Serial.println("----------------");
     Serial.print("Raw CO2: ");
-    Serial.println(adjustedCO2, 0);
+    Serial.println(adjustedCO2);
 
     adjustedCO2 = 6.60435861e+15 * exp(-8.78661228e-04 * adjustedCO2);      // Exponential equation for Raw & CO2 relationship
 
     Serial.print("Adjusted CO2: ");
-    Serial.print(adjustedCO2, 2);
+    Serial.print(adjustedCO2);
     Serial.println(" ppm");
 
     getDataTimer = millis();

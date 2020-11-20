@@ -33,11 +33,11 @@
 
 #include <Arduino.h>
 #include "MHZ19.h" 
-#include <SoftwareSerial.h>                                // Remove if using HardwareSerial or non-uno library compatable device
+#include <SoftwareSerial.h>    
 
 #define RX_PIN 10                                          
 #define TX_PIN 11                                          
-#define BAUDRATE 9600                                      // Native to the sensor (do not change)
+#define BAUDRATE 9600  
 
 MHZ19 myMHZ19;
 SoftwareSerial mySerial(RX_PIN, TX_PIN);    // Uno example
@@ -53,52 +53,20 @@ void setup()
 
     mySerial.begin(BAUDRATE);                                    // Uno example: Begin Stream with MHZ19 baudrate
     //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);      // ESP32 Example
+    myMHZ19.begin(mySerial);                                     // *Important, Pass your Stream reference
 
-    myMHZ19.begin(mySerial);                                // *Important, Pass your Stream reference
+    
+    /* Calibration is best carried out using this command
+       it sends the correct sequence with Span and Range set to 2000. The sensor works best in this range */
+    myMHZ19.calibrate();
 
-    /*            ### setRange(value)###  
-       Basic:
-       setRange(value) - set range to value (advise 2000 or 5000).
-       setRange()      - set range to 2000.
+    /* Alternative, you can specific the range and span with
+       myMHZ19.calibrateSpecify(range, span);   
 
-       Advanced:
-       Use verifyRange(int range) from this code at the bottom. 
-    */
-  
-    myMHZ19.setRange(2000);                 
+       Finally, youcan specift each individual in the follow sequence
+       setRange(range); calibrateZero(); setSpan(span);  */
 
-    /*            ###calibrateZero()###  
-       Basic:
-       calibrateZero() - request zero calibration
-
-       Advanced:
-       In Testing.
-    */
-
-    myMHZ19.calibrateZero();      
-
-    /*             ### setSpan(value)###  
-       Basic:
-       setSpan(value) - set span to value (strongly recommend 2000)
-       setSpan()      - set span to 2000;
-
-    */
-
-    myMHZ19.setSpan(2000); 
-
-    /*            ###autoCalibration(false)###  
-       Basic:
-       autoCalibration(false) - turns auto calibration OFF. (automatically sent before defined period elapses)
-       autoCalibration(true)  - turns auto calibration ON.
-       autoCalibration()      - turns auto calibration ON.
-
-       Advanced:
-       autoCalibration(true, 12) - turns autocalibration ON and calibration period to 12 hrs (maximum 24hrs).
-    */
-
-    myMHZ19.autoCalibration(false);
-    Serial.print("ABC Status: "); myMHZ19.getABC() ? Serial.println("ON") :  Serial.println("OFF");  
-                                    
+    Serial.print("ABC Status: "); myMHZ19.getABC() ? Serial.println("ON") :  Serial.println("OFF");                                
 }
 
 void loop()
@@ -133,3 +101,4 @@ void verifyRange(int range)
     else
         Serial.println("Failed to apply range.");        // Failed
 }
+

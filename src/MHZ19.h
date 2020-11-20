@@ -1,12 +1,6 @@
-/* -------------------------------------------------
-  Author: Jonathan Dempsey JDWifWaf@gmail.com
-  
-  Version: 1.5.2
-
-  License: LGPLv3
-
-  Library supporting MHZ19 sensors
------------------------------------------------------ */
+/* ----------------------------------------------------------------
+    Contact: JDWifWaf@gmail.com | Version: 1.6.0 | License: LGPLv3
+   ---------------------------------------------------------------- */
 
 #ifndef MHZ19_H
 #define MHZ19_H
@@ -17,19 +11,13 @@
 #include "esp32-hal-log.h"
 #endif
 
-#define MHZ19_ERRORS 1			// Set to 0 to disable error prints
-
-#define TEMP_ADJUST 38			// This is the value used to adjust the temeperature.
-								// Older datsheets use 40, however is likely incorrect.
-#define TIMEOUT_PERIOD 500		// Time out period for response (ms)
-
-#define DEFAULT_RANGE 2000		// For range function (sensor works best in this range)
-
-#define MHZ19_DATA_LEN 9		// Data protocl length
-
-// Command bytes -------------------------- //
-#define MHZ19_ABC_PERIOD_OFF    0x00
-#define MHZ19_ABC_PERIOD_DEF    0xA0
+#define MHZ19_LIB_ERRORS              1			// Set to 0 to disable error prints
+#define MHZ19_LIB_DATA_LEN            9		    // Data protocl length
+#define MHZ19_LIB_TEMP_ADJUST         40		// This is the value used to adjust the temeperature.
+#define MHZ19_LIB_TIMEOUT_PERIOD      500		// Time out period for response (ms)
+#define MHZ19_LIB_DEFAULT_RANGE       2000		// Default used when arguments not given, and  calibration as defaults
+#define MHZ19_LIB_DEFAULT_SPAN        2000		// Default used when arguments not given, and  calibration as defaults
+#define MHZ19_LIB_ABC_INTERVAL        4.32e7    // 12 hours in milliseconds
 
 /* enum alias for error code defintions */
 enum ERRORCODE
@@ -50,9 +38,6 @@ class MHZ19
 	/* Holds last recieved errorcode from recieveResponse() */
 	byte errorCode;
 
-	/* for keeping track of the ABC run interval */
-	unsigned long ABCRepeatTimer;
-
 	/*#####################-Initiation Functions-#####################*/
 
 	/* essential begin */
@@ -61,10 +46,10 @@ class MHZ19
 	/*########################-Set Functions-##########################*/
 
 	/* Sets Range to desired value*/
-	void setRange(int range = 2000);
+	void setRange(int range = MHZ19_LIB_DEFAULT_RANGE);
 
 	/* Sets Span to desired value below 10,000*/
-	void setSpan(int span = 2000);
+	void setSpan(int span = MHZ19_LIB_DEFAULT_SPAN);
 
     /* Sets "filter mode" to ON or OFF & mode type (see example) */
 	void setFilter(bool isON = true, bool isCleared = true);
@@ -75,7 +60,7 @@ class MHZ19
 	int getCO2(bool isunLimited = true, bool force = true);
 
 	/* returns the "raw" CO2 value of unknown units */
-	int getCO2Raw(bool force = true);
+	unsigned int getCO2Raw(bool force = true);
 
 	/* returns Raw CO2 value as a % of transmittance */		//<--- needs work to understand
 	float getTransmittance(bool force = true);
@@ -116,70 +101,47 @@ class MHZ19
 	void autoCalibration(bool isON = true, byte ABCPeriod = 24);
 
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
-	void calibrateZero(int rangeCal = 0);
+	void calibrateZero();
+
+	/* send calibration sequence */
+	void inline calibrateSpecify(int range, int span) {	setRange(range); calibrateZero(); setSpan(span); }
+
+	/* send calibration defaults incorrect sequence */
+	void inline calibrate() { calibrateSpecify(MHZ19_LIB_DEFAULT_RANGE, MHZ19_LIB_DEFAULT_SPAN); }
 
 	/* requests a reset */
 	void recoveryReset();
 
 	/* use to show communication between MHZ19 and  Device */
-	void printCommunication(bool isDec = true, bool isPrintComm = true);
+	void printCommunication(bool isDec = false, bool isPrintComm = true);
 
   private:
 	/*###########################-Variables-##########################*/
      
 	/* pointer for Stream class to accept reference for hardware and software ports */
-  Stream* mySerial; 
-
-  /* alias for command types */
-	typedef enum COMMAND_TYPE
-	{
-		RECOVER = 0,			// 0 Recovery Reset
-		ABC = 1,				// 1 ABC Mode ON/OFF
-		GETABC = 2,				// 2 Get ABC - Status 0x79
-		RAWCO2 = 3,				// 3 Raw CO2
-		CO2UNLIM = 4,			// 4 Temp for unsigned, CO2 Unlimited
-		CO2LIM = 5,				// 5 Temp for signed, CO2 limited
-		ZEROCAL = 6,			// 6 Zero Calibration
-		SPANCAL = 7,			// 7 Span Calibration
-		RANGE = 8,				// 8 Range
-		GETRANGE = 9,			// 9 Get Range
-		GETCALPPM = 10,			// 10 Get Background CO2
-		GETFIRMWARE = 11,		// 11 Get Firmware Version
-		GETLASTRESP = 12,		// 12 Get Last Response
-		GETEMPCAL = 13			// 13 Get Temp Calibration
-	} Command_Type;
+  	Stream* mySerial; 
 
 	/* Memory Pool */
 	struct mempool
 	{
-		struct config
+		uint8_t cfg = 0X00 | 0x04;        // Default settings have MHZ19_FILTER_CLR_EN
+	    unsigned long timer_abc;          // timer for tracking the next ABC cycle skip
+		struct data
 		{
-			bool ABCRepeat = false;					// A flag which represents whether autocalibration ABC period was checked
-			bool filterMode = false;				// Flag set by setFilter() to signify is "filter mode" was made active
-			bool filterCleared = true;				// Additional flag set by setFiler() to store which mode was selected			
-			bool printcomm = false;					// Communication print options
-			bool _isDec = true;						// Holds preferance for communication printing
-		} settings;
-
-		byte constructedCommand[MHZ19_DATA_LEN];	// holder for new commands which are to be sent
-
-		struct indata
-		{
-			byte CO2UNLIM[MHZ19_DATA_LEN];			// Holds command 133 response values "CO2 unlimited and temperature for unsigned"
-			byte CO2LIM[MHZ19_DATA_LEN];			// Holds command 134 response values "CO2 limited and temperature for signed"
-			byte RAW[MHZ19_DATA_LEN];				// Holds command 132 response values "CO2 Raw"
-			byte STAT[MHZ19_DATA_LEN];				// Holds other command response values such as range, background CO2 etc
-		} responses;
-
-	} storage;
+			byte ulim[MHZ19_LIB_DATA_LEN];			// Holds command 133 response values "CO2 unlimited and temperature as integer"
+			byte lim[MHZ19_LIB_DATA_LEN];			// Holds command 134 response values "CO2 limited and temperature as float"
+			byte in[MHZ19_LIB_DATA_LEN];		    // Holds generic in data
+			byte out[MHZ19_LIB_DATA_LEN];		    // Holds all out going data
+		} block;
+	} mem;
 
 	/*######################-Inernal Functions-########################*/
 
 	/* Coordinates  sending, constructing and recieving commands */
-	void provisioning(Command_Type commandtype, int inData = 0);
+	void provisioning(byte comm, int inData = 0);
 
 	/* Constructs commands using command array and entered values */
-	void constructCommand(Command_Type commandtype, int inData = 0);
+	void constructCommand(byte comm, int inData = 0);
 
 	/* generates a checksum for sending and verifying incoming data */
 	byte getCRC(byte inBytes[]);
@@ -191,10 +153,10 @@ class MHZ19
 	void write(byte toSend[]);
 
 	/* Call retrieveData to retrieve values from the sensor and check return code */
-	byte read(byte inBytes[9], Command_Type commandnumber);
+	byte read(byte inBytes[], byte comm);
 
 	/* Assigns response to the correct communcation arrays */
-	void handleResponse(Command_Type commandtype);
+	void handleResponse(byte comm);
 
 	/* prints sending / recieving messages if enabled */
 	void printstream(byte inbytes[9], bool isSent, byte pserrorCode);
@@ -203,7 +165,7 @@ class MHZ19
 	void ABCCheck();
 
 	/* converts integers to bytes according to /256 and %256 */
-	void makeByte(int inInt, byte *high, byte *low);
+	void makeByte(int inInt, byte high, byte low);
 
 	/* converts bytes to integers according to *256 and + value */
 	unsigned int makeInt(byte high, byte low);
