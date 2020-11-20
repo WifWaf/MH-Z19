@@ -437,11 +437,11 @@ void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
         }      
         /* If no period was defined (for safety, even though default argument is given)*/
         else
-            ABCPeriod = 160;    // Default bytes
+            ABCPeriod = MHZ19_ABC_PERIOD_DEF;    // Default bytes
     } 
     /* If ABC is OFF */
     else  
-        ABCPeriod = 0x00;                      // Set command byte to Zero to match command format.     
+        ABCPeriod = MHZ19_ABC_PERIOD_OFF;                      // Set command byte to Zero to match command format.     
 
     /* Update storage */  
     this->storage.settings.ABCRepeat = !isON;  // Set to opposite, as repeat command is sent only when ABC is OFF.
@@ -756,19 +756,16 @@ byte MHZ19::getCRC(byte inBytes[])
 }
 
 void MHZ19::ABCCheck()
-{  
-    /* check timer interval if dynamic hours have passed and if ABC_OFF was set to true */
-    if (((millis() - ABCRepeatTimer) >= 4.32e7) && (this->storage.settings.ABCRepeat == true))
-    {
-        /* update timer inerval */
-        ABCRepeatTimer = millis();
-
-        /* construct ABC_OFF command */
-        constructCommand(ABC);
-
-        /* write to serial */
-        write(this->storage.constructedCommand);
-    }
+{
+	/* check timer interval if dynamic hours have passed and if ABC_OFF was set to true */
+	if (((millis() - ABCRepeatTimer) >= 4.32e7) && (this->storage.settings.ABCRepeat == true))
+	{
+		/* update timer inerval */
+		ABCRepeatTimer = millis();
+		
+		/* construct command to skip next ABC cycle */
+		provisioning(ABC, MHZ19_ABC_PERIOD_OFF);
+	}
 }
 
 void MHZ19::makeByte(int inInt, byte *high, byte *low)

@@ -27,6 +27,10 @@
 
 #define MHZ19_DATA_LEN 9		// Data protocl length
 
+// Command bytes -------------------------- //
+#define MHZ19_ABC_PERIOD_OFF    0x00
+#define MHZ19_ABC_PERIOD_DEF    0xA0
+
 /* enum alias for error code defintions */
 enum ERRORCODE
 {
