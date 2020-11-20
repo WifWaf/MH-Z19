@@ -57,13 +57,13 @@ void setup()
 
     
     /* Calibration is best carried out using this command
-       it sends the correct sequence with Span and Range set to 2000. The sensor works best in this range */
+       it sends the correct sequence with Span and Range set to 2000. The sensor works best with these values */
     myMHZ19.calibrate();
 
-    /* Alternative, you can specific the range and span with
+    /* Alternatively, you can specify the range and span with
        myMHZ19.calibrateSpecify(range, span);   
 
-       Finally, youcan specift each individual in the follow sequence
+       Finally, you can specify individual steps as so
        setRange(range); calibrateZero(); setSpan(span);  */
 
     Serial.print("ABC Status: "); myMHZ19.getABC() ? Serial.println("ON") :  Serial.println("OFF");                                
