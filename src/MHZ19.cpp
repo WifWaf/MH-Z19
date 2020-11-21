@@ -5,6 +5,10 @@
 #include "MHZ19.h"
 
 /*#########################-DIRECTIVES-##############################*/
+// Utility ---------------------------------- //
+#define INT_LIMIT                32767     // Maximum decimal value for int
+#define ULIM_BUF                 0         // Filter buffer index for CO2 unlimited
+#define LIM_BUF                  1         // Filter buffer index for CO2 limited
 
 // Config ------------------------------------ //
 #define MHZ19_ABC_PER_OFF        0x00
@@ -64,7 +68,7 @@ void MHZ19::begin(Stream &serial)
 
 void MHZ19::setRange(int range)
 {
-    if (range > 65000)
+    if (range > MHZ19_LIB_MAX_RANGE)
     {
         #if defined (ESP32) && (MHZ19_ERRORS)
         ESP_LOGE(TAG_MHZ19, "Invalid Range value (0 - 65000)");
@@ -81,7 +85,7 @@ void MHZ19::setRange(int range)
 
 void MHZ19::setSpan(int span)
 {
-    if (span > 10000)
+    if (span > MHZ19_LIB_MAX_SPAN)
     {
         #if defined (ESP32) && (MHZ19_ERRORS)
         ESP_LOGE(TAG_MHZ19, "Invalid Span value (0 - 10000)");   
@@ -103,109 +107,97 @@ void MHZ19::setFilter(bool isON, bool isCleared)
 
 /*########################-Get Functions-##########################*/
 
-int MHZ19::getCO2(bool isunLimited, bool force)
-{
-    if (force)
-    {
-        if(isunLimited)
-            provisioning(MHZ19_COM_CO2_UNLIM);
-        else
-            provisioning(MHZ19_COM_CO2_LIM);
-     }
+int MHZ19::getCO2(bool isunLimited)
+{ 
+    (isunLimited) ? provisioning(MHZ19_COM_CO2_UNLIM, 0) : provisioning(MHZ19_COM_CO2_LIM, 0);
 
-    if (this->errorCode == RESULT_OK || !force)
+    if (this->errorCode == RESULT_OK)
     {
-        if (!(this->mem.cfg & MHZ19_FILTER_EN))
+        unsigned int CO2 = 0;
+        CO2 = (isunLimited) ? makeInt(this->mem.block.in[4], this->mem.block.in[5]): makeInt(this->mem.block.in[2], this->mem.block.in[3]);
+
+        if(this->mem.cfg & MHZ19_FILTER_EN)
         {
-            unsigned int validRead = 0;
-
-            if(isunLimited)              
-                validRead = makeInt(this->mem.block.ulim[4], this->mem.block.ulim[5]);
-            else
-                validRead = makeInt(this->mem.block.lim[2], this->mem.block.lim[3]);
-
-            if(validRead > 32767)
-                validRead = 32767;  // Set to maximum to stop negative values being return due to overflow
-
-            else
-                 return validRead;   
+           return filter(isunLimited, CO2);
         }
         else
         {
-           /* FILTER BEGIN ----------------------------------------------------------- */
-            unsigned int checkVal[2];
-            bool trigFilter = false;
+            if(CO2 > INT_LIMIT)
+                CO2 = INT_LIMIT;
 
-            // Filter was must call the opposest unlimited/limited command to work
-            if(!isunLimited)                    
-                provisioning(MHZ19_COM_CO2_UNLIM);
-            else
-                provisioning(MHZ19_COM_CO2_LIM);
-            
-            checkVal[0] = makeInt(this->mem.block.ulim[4], this->mem.block.ulim[5]);
-            checkVal[1] = makeInt(this->mem.block.lim[2], this->mem.block.lim[3]);
-
-            // Limited CO2 stays at 410ppm during reset, so comparing unlimited which instead
-            // shows an abormal value, reset duration can be found. Limited CO2 ppm returns to "normal"
-            // after reset.
-
-            if(this->mem.cfg & MHZ19_FILTER_CLR_EN)
-            {
-                if(checkVal[0] > 32767 || checkVal[1] > 32767 || (((checkVal[0] - checkVal[1]) >= 10) && checkVal[1] == 410))
-                {      
-                    this->errorCode = RESULT_FILTER;
-                    return 0;
-                }     
-            }
-            else
-            {
-                if(checkVal[0] > 32767)
-                {
-                    checkVal[0] = 32767;
-                    trigFilter = true;
-                }
-                if(checkVal[1] > 32767)
-                {
-                    checkVal[1] = 32767;
-                    trigFilter = true;
-                }
-                if(((checkVal[0] - checkVal[1]) >= 10) && checkVal[1] == 410)
-                    trigFilter = true;
-
-                if(trigFilter)
-                {              
-                    this->errorCode = RESULT_FILTER;
-                }
-            }
-
-            if(isunLimited)       
-                return checkVal[0];
-            else
-                return checkVal[1]; 
-            /* FILTER END ----------------------------------------------------------- */             
-        }              
+            return CO2;
+        } 
     }
     return 0;
 }
 
-unsigned int MHZ19::getCO2Raw(bool force)
+int MHZ19::filter(bool isunLimited, unsigned int CO2)
 {
-    if (force)
-        provisioning(MHZ19_COM_CO2_RAW);
+    bool trigFilter = false;           // Keep track of whether any conditions for filter trigger is met
+    unsigned int co2[2] = {0, 0};      // Neeed to comapre both CO2 returned bytes. {ulim, lim}.
 
-    if (this->errorCode == RESULT_OK || !force)
-        return makeInt(this->mem.block.in[2], this->mem.block.in[3]);
-
+    if(isunLimited)                    // Filter was must call the opposest unlimited/limited command to work
+    {                 
+        co2[ULIM_BUF] = CO2;
+        provisioning(MHZ19_COM_CO2_LIM, 0);
+        co2[LIM_BUF] = makeInt(this->mem.block.in[2], this->mem.block.in[3]);
+    }
     else
-        return 0;
+    {
+        co2[LIM_BUF] = CO2;
+        provisioning(MHZ19_COM_CO2_UNLIM, 0);
+        co2[ULIM_BUF] = makeInt(this->mem.block.in[4], this->mem.block.in[5]);
+    }
+
+    // Limited CO2 stays at 410ppm during reset, so comparing unlimited which instead
+    // shows an abormal value, reset duration can be found. Limited CO2 ppm returns to "normal"
+    // after reset.
+
+    if(this->mem.cfg & MHZ19_FILTER_CLR_EN)
+    {
+        if(co2[ULIM_BUF] > INT_LIMIT || co2[LIM_BUF] > INT_LIMIT 
+        || ((co2[ULIM_BUF] - co2[LIM_BUF] >= 10) && co2[LIM_BUF] == 410))  // CO2 limited, stays at 410ppm on reset
+        {      
+            this->errorCode = RESULT_FILTER;
+            return 0;
+        }     
+    }
+    else
+    {
+        if(co2[ULIM_BUF] > 32767)
+        {
+            co2[ULIM_BUF] = 32767;
+            trigFilter = true;
+        }
+        if(co2[LIM_BUF] > 32767)
+        {
+            co2[LIM_BUF] = 32767;
+            trigFilter = true;
+        }
+        if(((co2[ULIM_BUF]  - co2[LIM_BUF])  >= 10) && (co2[LIM_BUF] == 410))
+            trigFilter = true;
+
+        if(trigFilter)
+        {              
+            this->errorCode = RESULT_FILTER;
+        }
+    }
+
+    return (isunLimited) ? co2[ULIM_BUF] : co2[LIM_BUF];     
 }
 
-float MHZ19::getTransmittance(bool force)
+unsigned int MHZ19::getCO2Raw()
 {
-    if (force)
-        provisioning(MHZ19_COM_CO2_RAW);
+    provisioning(MHZ19_COM_CO2_RAW);
 
-    if (this->errorCode == RESULT_OK || !force)
+    return (this->errorCode == RESULT_OK) ? makeInt(this->mem.block.in[2], this->mem.block.in[3]) : 0;
+}
+
+float MHZ19::getTransmittance()
+{
+    provisioning(MHZ19_COM_CO2_RAW);
+
+    if (this->errorCode == RESULT_OK )
     {
         float calc = (float)makeInt((this->mem.block.in[2]), this->mem.block.in[3]);
 
@@ -215,55 +207,49 @@ float MHZ19::getTransmittance(bool force)
         return 0;
 }
 
-float MHZ19::getTemperature(bool isFloat, bool force)
+float MHZ19::getTemperature(bool isFloat)
 {
+    provisioning(MHZ19_COM_CO2_LIM);
+
     if(isFloat)
     {
         static byte baseTemp = 0;
+        static byte offSet = 0;
         static bool isSet = false;
 
         if(!isSet)
         {
-            provisioning(MHZ19_COM_CO2_LIM);
-            byte buff = (this->mem.block.lim[4] - MHZ19_LIB_TEMP_ADJUST);
-
-            baseTemp = buff - (byte)getTemperatureOffset(true);
+            baseTemp = (this->mem.block.in[4] - MHZ19_LIB_TEMP_ADJUST);
+            offSet -= (byte)getTemperatureOffset();
             isSet = true;
-        }
-        
-        if(force)
-            provisioning(MHZ19_COM_CO2_UNLIM);
+        }   
 
-        if(this->errorCode == RESULT_OK || !force)
+        if(this->errorCode == RESULT_OK)
         {
            float buff = baseTemp;
-           buff += getTemperatureOffset(false);
+           buff += offSet;
            return buff;
         }
     }
     
     else if(!isFloat)
     {
-        if (force == true)
-            provisioning(MHZ19_COM_CO2_LIM);
-
-        if (this->errorCode == RESULT_OK || !force)
-            return (this->mem.block.lim[4] - MHZ19_LIB_TEMP_ADJUST);
+        if (this->errorCode == RESULT_OK)
+            return (this->mem.block.in[4] - MHZ19_LIB_TEMP_ADJUST);
     }
     
     return -273.15;    
 }
  
-float MHZ19::getTemperatureOffset(bool force)
+float MHZ19::getTemperatureOffset()
 {
-    if (force)
-        provisioning(MHZ19_COM_CO2_UNLIM);
+    provisioning(MHZ19_COM_CO2_UNLIM);
 
-    if (this->errorCode == RESULT_OK || !force)
+    if (this->errorCode == RESULT_OK)
     {
         /* Value appears to be for CO2 offset (useful for deriving CO2 from raw?) */
         /* Adjustments and calculations are based on observations of temp behavour */
-        float calc = (((this->mem.block.ulim[2] - 8) * 1500) + ((this->mem.block.ulim[3] * 100) * 1 / 17));
+        float calc = (((this->mem.block.in[2] - 8) * 1500) + ((this->mem.block.in[3] * 100) * 1 / 17));
         calc /= 100;
         return calc;
     }
@@ -276,27 +262,20 @@ int MHZ19::getRange()
     /* check get range was recieved */
     provisioning(MHZ19_COM_RANGE);
 
-    if (this->errorCode == RESULT_OK)
-        /* convert MH-Z19 memory value and return */
-        return (int)makeInt(this->mem.block.in[4], this->mem.block.in[5]);
-    else
-        return 0;
+    return (this->errorCode == RESULT_OK) ? (int)makeInt(this->mem.block.in[4], this->mem.block.in[5]) : 0;
 }
 
-byte MHZ19::getAccuracy(bool force)
+byte MHZ19::getAccuracy()
 {
-    if(force)
-        provisioning(MHZ19_COM_CO2_LIM);
+    provisioning(MHZ19_COM_CO2_LIM);
 
-    if(this->errorCode == RESULT_OK || !force)
-        return this->mem.block.lim[5];  //GetRange byte 7
-    else
-        return 0;   
+    return (this->errorCode == RESULT_OK) ? this->mem.block.in[5] : 0; //GetRange byte 7
 }
 
 byte MHZ19::getPWMStatus()
 {
     provisioning(MHZ19_COM_CO2_BACK);
+
     return (this->errorCode == RESULT_OK) ? (this->mem.block.in[3]) : 0;
 }
 
@@ -319,11 +298,7 @@ int MHZ19::getBackgroundCO2()
 {
     provisioning(MHZ19_COM_CO2_BACK);
 
-    if (this->errorCode == RESULT_OK)
-        return (int)makeInt(this->mem.block.in[4], this->mem.block.in[5]);
-
-    else
-        return 0;
+    return (this->errorCode == RESULT_OK) ? (int)makeInt(this->mem.block.in[4], this->mem.block.in[5]) : 0;
 }
 
 byte MHZ19::getTempAdjustment()
@@ -332,34 +307,22 @@ byte MHZ19::getTempAdjustment()
 
     /* 40 is returned here, however this library can use TEMP_ADJUST */
 
-    if (this->errorCode == RESULT_OK)
-        return (this->mem.block.in[3]);
-
-    else
-        return 0;
+    return (this->errorCode == RESULT_OK) ? (this->mem.block.in[3]) : 0;
 }
 
 byte MHZ19::getLastResponse(byte num)
 {
     provisioning(MHZ19_COM_LAST);
 
-    if (this->errorCode == RESULT_OK)
-        return (this->mem.block.in[num]);
-
-    else
-        return 0;
+    return (this->errorCode == RESULT_OK) ? (this->mem.block.in[num]) : 0;
 }
 
 bool MHZ19::getABC()
 {
     /* check get ABC logic status (1 - enabled, 0 - disabled) */
     provisioning(MHZ19_COM_ABC_STATUS);
-
-    if (this->errorCode == RESULT_OK)
-        /* convert MH-Z19 memory value and return */
-        return this->mem.block.in[7];
-    else
-        return 1;
+    /* convert MH-Z19 memory value and return */
+    return (this->errorCode == RESULT_OK) ? this->mem.block.in[7] : 1;
 }
 
 /*######################-Utility Functions-########################*/
@@ -367,13 +330,14 @@ bool MHZ19::getABC()
 void MHZ19::verify()
 {
     unsigned long timeStamp = millis();
+    byte compare[MHZ19_LIB_DATA_LEN];
 
     /* construct common command (133) */
     constructCommand(MHZ19_COM_CO2_UNLIM);
 
-    write(this->mem.block.out);
+    write(compare);
 
-    while (read(this->mem.block.ulim, MHZ19_COM_CO2_UNLIM) != RESULT_OK)
+    while (read(this->mem.block.in, MHZ19_COM_CO2_UNLIM) != RESULT_OK)
     {
         if (millis() - timeStamp >= MHZ19_LIB_TIMEOUT_PERIOD)
         {
@@ -411,7 +375,7 @@ void MHZ19::verify()
     /* compare CO2 & temp bytes, command(133), against last response bytes, command (162)*/
     for (byte i = 2; i < 6; i++)
     {
-        if (this->mem.block.ulim[i] != this->mem.block.in[i])
+        if (compare[i] != this->mem.block.in[i])
         {
             #if defined (ESP32) && (MHZ19_ERRORS)
             ESP_LOGE(TAG_MHZ19, "Last response is not as expected, verification failed.");   
@@ -425,35 +389,22 @@ void MHZ19::verify()
     return;
 }
 
-void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
+void MHZ19::autoCalibration(bool isON)
 {
     /* If ABC is ON */
     if(isON)
     {
         this->mem.cfg &= ~MHZ19_ABC_DIS;  // Clears disable bit
-
-        /* If a period was defined */
-        if (ABCPeriod)
-        {
-            /* Catch values out of range */
-            if(ABCPeriod >= 24)
-                ABCPeriod = 24;
-
-            /* Convert to bytes */
-             ABCPeriod *= 6.6666;
-        }      
-        /* If no period was defined (for safety, even though default argument is given)*/
-        else
-            ABCPeriod = MHZ19_ABC_PERIOD_DEF;    // Default bytes
+        provisioning(MHZ19_COM_ABC, MHZ19_ABC_PERIOD_DEF);
     } 
     /* If ABC is OFF */
     else 
     {
-        ABCPeriod = MHZ19_ABC_PERIOD_OFF;    // Set command byte to Zero to match command format.
         this->mem.cfg |= MHZ19_ABC_DIS; 
+        provisioning(MHZ19_COM_ABC, MHZ19_ABC_PERIOD_OFF);  // Set command byte to Zero to match command format.
     }
              
-    provisioning(MHZ19_COM_ABC, ABCPeriod);
+    
 }
 
 void MHZ19::calibrateZero()
@@ -483,7 +434,7 @@ void MHZ19::provisioning(byte comm, int inData)
     write(this->mem.block.out);
 
     /*return response */
-    handleResponse(comm);
+    read(this->mem.block.in, comm);	
 
     /* Check if ABC_OFF needs to run */
     ABCCheck();
@@ -507,7 +458,7 @@ void MHZ19::constructCommand(byte comm, int inData)
         case  MHZ19_COM_REC:
             break;
         case MHZ19_COM_ABC:
-            if (this->mem.cfg & MHZ19_ABC_DIS)
+            if (!(this->mem.cfg & MHZ19_ABC_DIS))
                 this->mem.block.out[3] = inData;
             break;
         case MHZ19_COM_CO2_RAW:
@@ -622,21 +573,6 @@ byte MHZ19::read(byte inBytes[], byte comm)
     return this->errorCode;
 }
 
-void MHZ19::handleResponse(byte comm)
-{
-    if (this->mem.block.out[2] == MHZ19_COM_CO2_RAW)	 // compare commands byte
-        read(this->mem.block.in, comm);			     	 // returns error number, passes back response and inputs command
-
-    else if (this->mem.block.out[2] == MHZ19_COM_CO2_UNLIM)
-        read(this->mem.block.ulim, comm);
-
-    else if (this->mem.block.out[2] == MHZ19_COM_CO2_LIM)
-        read(this->mem.block.lim, comm);
-
-    else
-        read(this->mem.block.in, comm);
-}
-
 void MHZ19::printstream(byte inBytes[], bool isSent, byte pserrorCode)
 {
     if(pserrorCode != RESULT_OK && isSent == false)
@@ -712,11 +648,12 @@ byte MHZ19::getCRC(byte inBytes[])
 
 void MHZ19::ABCCheck()
 {
-	/* check timer interval if dynamic hours have passed and if ABC_OFF was set to true */
-	if (((millis() - this->mem.timer_abc) >= MHZ19_LIB_ABC_INTERVAL) && (this->mem.cfg & MHZ19_ABC_DIS))
+	static unsigned long timer_abc;          // timer for tracking the next ABC cycle skip
+    /* check timer interval if dynamic hours have passed and if ABC_OFF was set to true */
+	if (((millis() - timer_abc) >= MHZ19_LIB_ABC_INTERVAL) && (this->mem.cfg & MHZ19_ABC_DIS))
 	{
 		/* update timer inerval */
-		this->mem.timer_abc = millis();
+		timer_abc = millis();
 		
 		/* construct command to skip next ABC cycle */
 		provisioning(MHZ19_COM_ABC, MHZ19_ABC_PERIOD_OFF);

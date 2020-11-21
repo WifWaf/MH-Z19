@@ -33,8 +33,8 @@ void loop()
         Serial.println("------------------");
 
         /* get sensor readings as signed integer */        
-        int16_t CO2Unlimited = myMHZ19.getCO2(true, true);
-        int16_t CO2limited = myMHZ19.getCO2(false, true);
+        int16_t CO2Unlimited = myMHZ19.getCO2(true);
+        int16_t CO2limited = myMHZ19.getCO2(false);
 
         if(myMHZ19.errorCode != RESULT_OK)
             Serial.println("Error found in communication ");

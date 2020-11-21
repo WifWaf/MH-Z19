@@ -54,7 +54,7 @@ void setup()
     mySerial.begin(BAUDRATE);                                    // Uno example: Begin Stream with MHZ19 baudrate
     //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);      // ESP32 Example
     myMHZ19.begin(mySerial);                                     // *Important, Pass your Stream reference
-
+    myMHZ19.autoCalibration(false);                              // Disable auto-calibration (needs to be kept here, if you want to stick with manual)
     
     /* Calibration is best carried out using this command
        it sends the correct sequence with Span and Range set to 2000. The sensor works best with these values */
@@ -65,7 +65,7 @@ void setup()
 
        Finally, you can specify individual steps as so
        setRange(range); calibrateZero(); setSpan(span);  */
-
+    
     Serial.print("ABC Status: "); myMHZ19.getABC() ? Serial.println("ON") :  Serial.println("OFF");                                
 }
 
@@ -85,7 +85,7 @@ void loop()
         Serial.print("Temperature (C): ");
         Serial.println(Temp);
 
-        getDataTimer = millis();              // Update inerval
+        getDataTimer = millis();               // Update inerval
     }
 }
 

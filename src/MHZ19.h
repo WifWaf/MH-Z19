@@ -18,6 +18,8 @@
 #define MHZ19_LIB_DEFAULT_RANGE       2000		// Default used when arguments not given, and  calibration as defaults
 #define MHZ19_LIB_DEFAULT_SPAN        2000		// Default used when arguments not given, and  calibration as defaults
 #define MHZ19_LIB_ABC_INTERVAL        4.32e7    // 12 hours in milliseconds
+#define MHZ19_LIB_MAX_SPAN            10000     // Maximum allowed span entered before error message
+#define MHZ19_LIB_MAX_RANGE           65000		// Maximum allowed range entered before error message
 
 /* enum alias for error code defintions */
 enum ERRORCODE
@@ -56,17 +58,17 @@ class MHZ19
  
 	/*########################-Get Functions-##########################*/
 
-	/* request CO2 values, 2 types of CO2 can be returned, isLimted = true (command 134) and is Limited = false (command 133) */
-	int getCO2(bool isunLimited = true, bool force = true);
+	/* request CO2 values, 2 seperate commands can return CO2 values; 0x85 and 0x86 */
+	int getCO2(bool isunLimited = true);
 
 	/* returns the "raw" CO2 value of unknown units */
-	unsigned int getCO2Raw(bool force = true);
+	unsigned int getCO2Raw();
 
 	/* returns Raw CO2 value as a % of transmittance */		//<--- needs work to understand
-	float getTransmittance(bool force = true);
+	float getTransmittance();
 
 	/*  returns temperature using command 134 or 135 if isFloat = true */
-	float getTemperature(bool isFloat = false, bool force = true);
+	float getTemperature(bool isFloat = false);
 	
 	/* reads range using command 153 */
 	int getRange();
@@ -75,7 +77,7 @@ class MHZ19
 	bool getABC();
 
 	/* Returns accuracy value if available */
-	byte getAccuracy(bool force = true);
+	byte getAccuracy();
 
 	/* not yet implamented */
 	byte getPWMStatus();
@@ -86,7 +88,7 @@ class MHZ19
 	/* returns background CO2 used by sensor using command 156 */
 	int getBackgroundCO2();
 
-	/* returns temperature using command 163 (Note: this library deducts -2 when the value is used) */
+	/* returns temperature using command 163  */
 	byte getTempAdjustment();
 
 	/* returns last recorded response from device using command 162 */
@@ -98,15 +100,15 @@ class MHZ19
 	void verify();
 
 	/* disables calibration or sets ABCPeriod */
-	void autoCalibration(bool isON = true, byte ABCPeriod = 24);
+	void autoCalibration(bool isON = true);
 
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
 	void calibrateZero();
 
-	/* send calibration sequence */
+	/* send calibration in the recommended sequence */
 	void inline calibrateSpecify(int range, int span) {	setRange(range); calibrateZero(); setSpan(span); }
 
-	/* send calibration defaults incorrect sequence */
+	/* send calibration with default values in the recommended sequence */
 	void inline calibrate() { calibrateSpecify(MHZ19_LIB_DEFAULT_RANGE, MHZ19_LIB_DEFAULT_SPAN); }
 
 	/* requests a reset */
@@ -118,18 +120,15 @@ class MHZ19
   private:
 	/*###########################-Variables-##########################*/
      
-	/* pointer for Stream class to accept reference for hardware and software ports */
+	/* pointer for Stream class for compatability */
   	Stream* mySerial; 
 
 	/* Memory Pool */
 	struct mempool
 	{
 		uint8_t cfg = 0X00 | 0x04;        // Default settings have MHZ19_FILTER_CLR_EN
-	    unsigned long timer_abc;          // timer for tracking the next ABC cycle skip
 		struct data
 		{
-			byte ulim[MHZ19_LIB_DATA_LEN];			// Holds command 133 response values "CO2 unlimited and temperature as integer"
-			byte lim[MHZ19_LIB_DATA_LEN];			// Holds command 134 response values "CO2 limited and temperature as float"
 			byte in[MHZ19_LIB_DATA_LEN];		    // Holds generic in data
 			byte out[MHZ19_LIB_DATA_LEN];		    // Holds all out going data
 		} block;
@@ -147,7 +146,7 @@ class MHZ19
 	byte getCRC(byte inBytes[]);
 
 	/* Returns what appears to be an offset */ 		//<----- knowledgable people might have success using against the raw value
-	float getTemperatureOffset(bool force = true);
+	float getTemperatureOffset();
 
 	/* Sends commands to the sensor */
 	void write(byte toSend[]);
@@ -163,6 +162,8 @@ class MHZ19
 
 	/* Cheks whether time elapse for next ABC OFF cycle has occured */
 	void ABCCheck();
+
+	int filter(bool isunLimited, unsigned int CO2);
 
 	/* converts integers to bytes according to /256 and %256 */
 	void makeByte(int inInt, byte high, byte low);
