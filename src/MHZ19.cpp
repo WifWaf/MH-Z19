@@ -138,9 +138,9 @@ int MHZ19::filter(bool isunLimited, unsigned int CO2)
 
     if(isunLimited)                    // Filter was must call the opposest unlimited/limited command to work
     {                 
-        co2[ULIM_BUF] = CO2;
-        provisioning(MHZ19_COM_CO2_LIM, 0);
-        co2[LIM_BUF] = makeInt(this->mem.block.in[2], this->mem.block.in[3]);
+        co2[ULIM_BUF] = CO2;     // save last co2 reading
+        provisioning(MHZ19_COM_CO2_LIM, 0);      // request opposite co2 command
+        co2[LIM_BUF] = makeInt(this->mem.block.in[2], this->mem.block.in[3]);     // save opposite co2 command
     }
     else
     {
@@ -153,33 +153,33 @@ int MHZ19::filter(bool isunLimited, unsigned int CO2)
     // shows an abormal value, reset duration can be found. Limited CO2 ppm returns to "normal"
     // after reset.
 
-    if(this->mem.cfg & MHZ19_FILTER_CLR_EN)
+    if(this->mem.cfg & MHZ19_FILTER_CLR_EN)             // return to be cleared to 0
     {
         if(co2[ULIM_BUF] > INT_LIMIT || co2[LIM_BUF] > INT_LIMIT 
         || ((co2[ULIM_BUF] - co2[LIM_BUF] >= 10) && co2[LIM_BUF] == 410))  // CO2 limited, stays at 410ppm on reset
         {      
-            this->errorCode = RESULT_FILTER;
+            this->errorCode = RESULT_FILTER;  // Upate filter error
             return 0;
         }     
     }
-    else
+    else      // return not be cleared to 0
     {
-        if(co2[ULIM_BUF] > 32767)
+        if(co2[ULIM_BUF] > INT_LIMIT)        // Catch out of int range values
         {
-            co2[ULIM_BUF] = 32767;
+            co2[ULIM_BUF] = INT_LIMIT;
             trigFilter = true;
         }
-        if(co2[LIM_BUF] > 32767)
+        if(co2[LIM_BUF] > INT_LIMIT)
         {
-            co2[LIM_BUF] = 32767;
+            co2[LIM_BUF] = INT_LIMIT;
             trigFilter = true;
         }
-        if(((co2[ULIM_BUF]  - co2[LIM_BUF])  >= 10) && (co2[LIM_BUF] == 410))
+        if(((co2[ULIM_BUF]  - co2[LIM_BUF])  >= 10) && (co2[LIM_BUF] == 410)) // CO2 limited, stays at 410ppm on reset
             trigFilter = true;
 
         if(trigFilter)
         {              
-            this->errorCode = RESULT_FILTER;
+            this->errorCode = RESULT_FILTER;  // Upate filter error
         }
     }
 
@@ -213,9 +213,9 @@ float MHZ19::getTemperature(bool isFloat)
 
     if(isFloat)
     {
-        static byte baseTemp = 0;
-        static byte offSet = 0;
-        static bool isSet = false;
+        static byte baseTemp = 0;    // Temp has a common base value when determing float   
+        static byte offSet = 0;      // Offset is the value to be removed form the final value
+        static bool isSet = false;   // Flag for if the base temp was recorded in previous iterations
 
         if(!isSet)
         {
