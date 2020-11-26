@@ -1,7 +1,5 @@
 ﻿![Version](https://img.shields.io/badge/Version-v1.6.0-blue.svg)
 
-> See extras for I2C version using the SC16IS750 UART bridge (slightly outdated, can be updated on request).
-
 # MH-Z19 & MH-Z19B
 A library for the MH-Z19 & MH-Z19B CO2 sensor on the Arduino platform which unlocks significant commands. Supports Hardware/Softeware serial and arduino based boads.
 
