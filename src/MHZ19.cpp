@@ -1,12 +1,4 @@
-/* -------------------------------------------------
-  Author: Jonathan Dempsey JDWifWaf@gmail.com
-  
-  Version: 1.5.2
-
-  License: LGPLv3
-
-  Library supporting MHZ19 sensors
------------------------------------------------------ */
+/*   Version: 1.5.3  |  License: LGPLv3  |  Author: JDWifWaf@gmail.com   */
 
 #include "MHZ19.h"
 
@@ -68,7 +60,7 @@ void MHZ19::setRange(int range)
         provisioning(RANGE, range);
 }
 
-void MHZ19::setSpan(int span)
+void MHZ19::zeroSpan(int span)
 {
     if (span > 10000)
     {
@@ -449,45 +441,9 @@ void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
     provisioning(ABC, ABCPeriod);
 }
 
-void MHZ19::calibrateZero(int rangeCal)
+void MHZ19::calibrate()
 {
-    if (rangeCal)
-    {
-        int rangevalues[11] = {
-            400,
-            1000,
-            1500,
-            2000,
-            3000,
-            4000,
-            5000,
-            6000,
-            7000,
-            8000,
-            10000};
-
-        byte result = 0;
-
-        for (byte i = 0; i < 11; i++)
-        {
-            if (i == 10)
-            {
-                result = (i + 8);
-                break;
-            }
-
-            else if ((rangevalues[i] + (rangevalues[i + 1])) / 2 > rangeCal)
-            {
-                result = (i + 8);
-                break;
-            }
-        }
-
-        provisioning(ZEROCAL, result);
-    }
-
-    else
-        provisioning(ZEROCAL);
+    provisioning(ZEROCAL);
 }
 
 void MHZ19::recoveryReset()

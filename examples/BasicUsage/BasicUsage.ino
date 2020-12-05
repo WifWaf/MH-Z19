@@ -1,15 +1,13 @@
 #include <Arduino.h>
 #include "MHZ19.h"                                        
-#include <SoftwareSerial.h>                                // Remove if using HardwareSerial or Arduino package without SoftwareSerial support
+#include <SoftwareSerial.h>                                // Remove if using HardwareSerial
 
 #define RX_PIN 10                                          // Rx pin which the MHZ19 Tx pin is attached to
 #define TX_PIN 11                                          // Tx pin which the MHZ19 Rx pin is attached to
 #define BAUDRATE 9600                                      // Device to MH-Z19 Serial baudrate (should not be changed)
 
 MHZ19 myMHZ19;                                             // Constructor for library
-
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // (Uno example) create device to MH-Z19 serial
-//HardwareSerial mySerial(1);                              // (ESP32 Example) create device to MH-Z19 serial
 
 unsigned long getDataTimer = 0;
 
@@ -18,7 +16,6 @@ void setup()
     Serial.begin(9600);                                     // Device to serial monitor feedback
 
     mySerial.begin(BAUDRATE);                               // (Uno example) device to MH-Z19 serial start   
-    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // (ESP32 Example) device to MH-Z19 serial start   
     myMHZ19.begin(mySerial);                                // *Serial(Stream) refence must be passed to library begin(). 
 
     myMHZ19.autoCalibration();                              // Turn auto calibration ON (OFF autoCalibration(false))
