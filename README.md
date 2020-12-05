@@ -13,7 +13,7 @@ See examples for the recovery code. *Note, Only use if your sensor is not recove
 * Communication error checking
 * Examples
 
->^*Transmittance is based upon the backwards projection of the raw value (which decreases with CO2) - see examples or [My Notes (Ravings)](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
+>*[My original notes (somewhat ravings) are here](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
 
 ### Commands
 ---
