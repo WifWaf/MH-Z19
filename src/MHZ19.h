@@ -51,7 +51,7 @@ class MHZ19
 	void setRange(int range = MHZ19_LIB_DEFAULT_RANGE);
 
 	/* Sets Span to desired value below 10,000*/
-	void setSpan(int span = MHZ19_LIB_DEFAULT_SPAN);
+	void zeroSpan(int span = MHZ19_LIB_DEFAULT_SPAN);
 
     /* Sets "filter mode" to ON or OFF & mode type (see example) */
 	void setFilter(bool isON = true, bool isCleared = true);
@@ -103,13 +103,7 @@ class MHZ19
 	void autoCalibration(bool isON = true);
 
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
-	void calibrateZero();
-
-	/* send calibration in the recommended sequence */
-	void inline calibrateSpecify(int range, int span) {	setRange(range); calibrateZero(); setSpan(span); }
-
-	/* send calibration with default values in the recommended sequence */
-	void inline calibrate() { calibrateSpecify(MHZ19_LIB_DEFAULT_RANGE, MHZ19_LIB_DEFAULT_SPAN); }
+	void calibrate();
 
 	/* requests a reset */
 	void recoveryReset();

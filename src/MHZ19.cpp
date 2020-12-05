@@ -83,7 +83,7 @@ void MHZ19::setRange(int range)
         provisioning(MHZ19_COM_RANGE, range);
 }
 
-void MHZ19::setSpan(int span)
+void MHZ19::zeroSpan(int span)
 {
     if (span > MHZ19_LIB_MAX_SPAN)
     {

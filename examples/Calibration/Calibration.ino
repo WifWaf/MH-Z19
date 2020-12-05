@@ -1,49 +1,38 @@
 /* 
-    NOTE - the order of functions is important for correct
-    calibration.
-
-    Where other CO2 sensors require an nitrogen atmosphere to "zero"
-    the sensor CO2 reference, the MHZ19 "zero" (confusingly) refers to the 
-    background CO2 level hardcoded into the device at 400ppm (getBackgroundCO2() 
-    sends a command to the device to retrieve the value);
-
-    The best start for your sensor is to wait till CO2 values are as close to background
-    levels as possible (currently an average of ~418ppm). Usually at night time and outside 
-    if possible, otherwise when the house has been unoccupied for as long as possible such.
-
+    Unlike typical sensors, calibration() refers to the zero point where CO2 is 400ppm.
+    This 400ppm comes from the average atmospheric value of 400ppm (or atleast was).
+    Depending on the sensor model, the harcoded value can usually be found by 
+    calling getBackgroundCO2();
+    So if you intend to manually calibrate your sensor, it's usually best to do so at 
+    night and outside after 20 minutes of run time.
+    
+    Instead if you're using autocalibration, then the sensor takes the lowest value observed 
+    in the last 24 hours and adjusts it's self accordingly over a few weeks.
     HOW TO USE:
-
     ----- Hardware Method  -----
     By pulling the zero HD low (0V) for 7 Secs as per the datasheet.   
-
     ----- Software Method -----
-    Run this example while in an ideal environment (I.e. restarting the device). Once 
-    restarted, disconnect MHZ19 from device and upload a new sketch to avoid
-    recalibration.
+    Run this sketch, disconnect MHZ19 from device after sketch ends (20+ minutes) and upload new
+    code to avoid recalibration.
     
     ----- Auto calibration ----
-    If you are using auto calibration, the sensor will adjust its self every 24 hours
-    (note here, the auto calibration algorithm uses the lowest observe CO2 value
-    for that set of 24 hours as the zero - so, if your device is under an environment
-    which does not fall to these levels, consider turning this off in your setup code). 
+    As mentioned above if this is set to true, the sensor will adjust it's self over a few weeks 
+    according to the lowest observed CO2 values each day. *You don't need to run this sketch!
      
-    If autoCalibration is set to "false", then getting the background calibration levels 
-    correct at first try is essential.
 */
 
 #include <Arduino.h>
 #include "MHZ19.h" 
-#include <SoftwareSerial.h>    
+#include <SoftwareSerial.h>     // Remove if using HardwareSerial or non-uno library compatable device
 
-#define RX_PIN 10                                          
+#define RX_PIN 10                                         
 #define TX_PIN 11                                          
-#define BAUDRATE 9600  
+#define BAUDRATE 9600 
 
 MHZ19 myMHZ19;
 SoftwareSerial mySerial(RX_PIN, TX_PIN);    // Uno example
-//HardwareSerial mySerial(1);               // ESP32 Example
 
-unsigned long getDataTimer = 0;
+unsigned long timeElapse = 0;
 
 void verifyRange(int range);
 
@@ -51,27 +40,25 @@ void setup()
 {
     Serial.begin(9600);
 
-    mySerial.begin(BAUDRATE);                                    // Uno example: Begin Stream with MHZ19 baudrate
-    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);      // ESP32 Example
-    myMHZ19.begin(mySerial);                                     // *Important, Pass your Stream reference
-    myMHZ19.autoCalibration(false);                              // Disable auto-calibration (needs to be kept here, if you want to stick with manual)
-    
-    /* Calibration is best carried out using this command
-       it sends the correct sequence with Span and Range set to 2000. The sensor works best with these values */
-    myMHZ19.calibrate();
+    mySerial.begin(BAUDRATE);    // sensor serial
+    myMHZ19.begin(mySerial);     // pass to library
 
-    /* Alternatively, you can specify the range and span with
-       myMHZ19.calibrateSpecify(range, span);   
-
-       Finally, you can specify individual steps as so
-       setRange(range); calibrateZero(); setSpan(span);  */
+    myMHZ19.autoCalibration(false);     // make sure auto calibration is off
+    Serial.print("ABC Status: "); myMHZ19.getABC() ? Serial.println("ON") :  Serial.println("OFF");  // now print it's status
     
-    Serial.print("ABC Status: "); myMHZ19.getABC() ? Serial.println("ON") :  Serial.println("OFF");                                
+    Serial.println("Waiting 20 minutes to stabalise...");
+   /* if you don't need to wait (it's already been this amount of time), remove the next 2 lines */
+    timeElapse = 12e5;                    //  20 minutes in milliseconds
+    while(millis() < timeElapse) {};      //  wait this duration
+
+    Serial.println("Calibrating..");
+    myMHZ19.calibrate();    // Take a reading which be used as the zero point for 400 ppm 
+                                   
 }
 
 void loop()
 {
-    if (millis() - getDataTimer >= 2000)     // Check if interval has elapsed (non-blocking delay() equivilant)
+    if (millis() - timeElapse >= 2000)  // Check if interval has elapsed (non-blocking delay() equivilant)
     {
         int CO2;
         CO2 = myMHZ19.getCO2();        
@@ -79,26 +66,12 @@ void loop()
         Serial.print("CO2 (ppm): ");
         Serial.println(CO2);
 
-        int8_t Temp;                           // Buffer for temperature
-        Temp = myMHZ19.getTemperature();       // Request Temperature (as Celsius)
+        int8_t Temp;    // Buffer for temperature
+        Temp = myMHZ19.getTemperature();    // Request Temperature (as Celsius)
 
         Serial.print("Temperature (C): ");
         Serial.println(Temp);
 
-        getDataTimer = millis();               // Update inerval
+        timeElapse = millis();  // Update inerval
     }
 }
-
-void verifyRange(int range)
-{
-    Serial.println("Requesting new range.");
-
-    myMHZ19.setRange(range);                             // request new range write
-
-    if (myMHZ19.getRange() == range)                     // Send command to device to return it's range value.
-        Serial.println("Range successfully applied.");   // Success
-
-    else
-        Serial.println("Failed to apply range.");        // Failed
-}
-
