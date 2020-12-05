@@ -9,9 +9,11 @@
     If you intend to increase it, be aware the sensor accuracy drops the wider the range.
     
     Changing this, usually requires changing Span which is not recommended.
+    
     Span (Zero):
     The difference between the low and high range. In this case, that's 0 (we don't set this)
     and Range. So, it works out to be the same as the range.
+    
     There is a BIG difference however - Span is a zero command, meaning it needs a reference
     CO2 value like calibration(), which matches the span.
     
@@ -30,8 +32,6 @@
 #define RX_PIN 10                                          
 #define TX_PIN 11                                          
 #define BAUDRATE 9600 
-
-#define RANGE_SPAN 2000
 
 MHZ19 myMHZ19;
 SoftwareSerial mySerial(RX_PIN, TX_PIN);    // Uno example
