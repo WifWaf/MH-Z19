@@ -7,7 +7,6 @@
 #define BAUDRATE 9600                                      // Device to MH-Z19 Serial baudrate (should not be changed)
 
 MHZ19 myMHZ19;                                             // Constructor for library
-
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // (Uno example) create device to MH-Z19 serial
 
 unsigned long getDataTimer = 0;

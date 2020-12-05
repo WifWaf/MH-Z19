@@ -1,14 +1,13 @@
 #include <Arduino.h>
 #include "MHZ19.h"                        
-#include <SoftwareSerial.h>                               //  Remove if using HardwareSerial or non-uno compatabile device
+#include <SoftwareSerial.h> 
 
 #define RX_PIN 10 
 #define TX_PIN 11 
-#define BAUDRATE 9600                                     // Native to the sensor (do not change)
+#define BAUDRATE 9600 
 
 MHZ19 myMHZ19;
-SoftwareSerial mySerial(RX_PIN, TX_PIN);                  // Uno example
-//HardwareSerial mySerial(1);                             // ESP32 Example
+SoftwareSerial mySerial(RX_PIN, TX_PIN);
 
 unsigned long getDataTimer = 0;
 
@@ -16,11 +15,8 @@ void setup()
 {
     Serial.begin(9600);  
    
-    mySerial.begin(BAUDRATE);                               // Uno example: Begin Stream with MHZ19 baudrate
-
-  //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);   // ESP32 Example
-
-    myMHZ19.begin(mySerial);                // *Important, Pass your Stream reference here
+    mySerial.begin(BAUDRATE);               // Uno example
+    myMHZ19.begin(mySerial);                // Pass your Stream reference here
 
     myMHZ19.autoCalibration(false);         // Turn auto calibration OFF
 }

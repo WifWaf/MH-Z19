@@ -39,7 +39,6 @@ void setup()
     Serial.begin(9600);  
    
     mySerial.begin(BAUDRATE);                                   // Uno Example: Begin Stream with MHZ19 baudrate
-
     myMHZ19.begin(mySerial);                                    // Pass Serial reference  
     
 #if MODE

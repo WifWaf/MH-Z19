@@ -1,23 +1,12 @@
 /* 
   Raw CO2:
-  Using the raw value competantly requires insight into the technology
-  and science behind how such algorithms are produced. However, it
-  can still be extremely useful to have a rough value as a 'sanity check'
-  against MHZ19 calibration failure. This is because the raw is 
-  not affect by span/range/zero/temperature.
+  Using the raw value competantly requires insight into the technology.
+  
+  However, itcan still be useful to have a rough value as a 'sanity check'.
+  This is because the raw is not affect by span/range/zero/temperature.
 
-  This can be achieved by plotting the Raw value vs CO2 ppm over a
-  broad range when conditions are idealistic. This can be versus
-  its own calibrated PPM.
-
-  Using this relationship, a trend can be produced (an exponetial 
-  trend is ideal for a 2000 range, otherwise polynomial)
-  which can be applied to the raw value.
-
-  While this is useful, it's important to remember that temperature
-  and pressure both have an effect on PPM and that changes to these
-  parameters will not reflect in your trend (although the difference
-  is often very small). 
+  By plotting the Raw value vs CO2 ppm the full range (2000 usually),
+  a trend can be produced (an exponetial rend is ideal for a 2000 range).
  */
 
 #include "MHZ19.h"
@@ -30,7 +19,6 @@
 
 MHZ19 myMHZ19;                                             
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // Uno example
-//HardwareSerial mySerial(1);                              // ESP32 example
 
 unsigned long getDataTimer = 0;
 
@@ -38,10 +26,7 @@ void setup()
 {
   Serial.begin(9600);
 
-  mySerial.begin(BAUDRATE);                               // Uno example: Begin Stream with MHZ19 baudrate
-
-  //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN); // ESP32 example
-  
+  mySerial.begin(BAUDRATE);                               // Uno example: Begin Stream with MHZ19 baudrate  
   myMHZ19.begin(mySerial);                                 // *Important, Pass your Stream reference
 }
 

@@ -25,7 +25,6 @@
 
 MHZ19 myMHZ19;
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // Uno example
-//HardwareSerial mySerial(1);                              // ESP32 Example
 
 unsigned long getDataTimer = 0;
 
@@ -36,7 +35,6 @@ void setup()
     Serial.begin(9600);
 
     mySerial.begin(BAUDRATE);                                // Uno Exammple: Begin Stream with MHZ19 baudrate
-    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);  // ESP32 Example
 
     myMHZ19.printCommunication();                            // Error Codes are also included here if found (mainly for debugging/interest)
 

@@ -407,7 +407,7 @@ void MHZ19::autoCalibration(bool isON)
     
 }
 
-void MHZ19::calibrateZero()
+void MHZ19::calibrate()
 {
     provisioning(MHZ19_COM_CAL_ZERO);
 }
