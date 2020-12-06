@@ -1,9 +1,13 @@
-/* Only use this if you are struggling to get rational readings from your
-   sensor - this uses the reset command which is not fully tested.
-   
-   This sequence goes through the standard setup and will attempt
-   to reset the device if there is an issue and repeat untill a rational
-   result is given.*/
+/*  Only use this as a final resort! 
+
+   The example sets span without a reference and hence can reduce accuracy.
+   Additionaly, it uses a rest command not fully tested.
+
+   This sequence goes through a reset sequence and will attempt
+   to reset the device if there is an issue. This is repeated untill a rational
+   result is given. */
+
+#define FORCE_SPAN 0                                       // < --- set to 1 as an absoloute final resort
 
 #include <Arduino.h>
 #include "MHZ19.h"
@@ -15,7 +19,6 @@
 
 MHZ19 myMHZ19;
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // Uno example
-//HardwareSerial mySerial(1);                              // ESP32 Example
 
 unsigned long getDataTimer = 0;
 
@@ -26,23 +29,23 @@ void setup()
 {
     Serial.begin(9600);
 
-    mySerial.begin(BAUDRATE);                                // Uno example: Begin Stream with MHZ19 baudrate
+    Serial1.begin(BAUDRATE);                                // Uno example: Begin Stream with MHZ19 baudrate
 
-    //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);  // ESP32 Example 
-
-    myMHZ19.begin(mySerial);                                 // *Imporant, Pass your Stream reference
+    myMHZ19.begin(Serial1);                                 // *Imporant, Pass your Stream reference
 
     setRange(2000);                                          // Set Range 2000
 
      if (myMHZ19.errorCode == RESULT_OK)
-         myMHZ19.calibrateZero();                            // Calibrate
+         myMHZ19.calibrate();                                // Calibrate
      else
         printErrorCode();
 
+#if FORCE_SPAN
     if (myMHZ19.errorCode == RESULT_OK)
-        myMHZ19.setSpan(2000);                               // Set Span 2000
+        myMHZ19.zeroSpan(2000);                               // Set Span 2000
     else
         printErrorCode();
+#endif 
 
     if (myMHZ19.errorCode == RESULT_OK)
         myMHZ19.autoCalibration(false);                       // Turn auto calibration OFF
@@ -107,7 +110,7 @@ void loop()
             Serial.println(CO2);
 
             int8_t Temp;                                 // Buffer for temperature
-            Temp = myMHZ19.getTemperature(false, false); // Request Temperature (as Celsius), new request = false;
+            Temp = myMHZ19.getTemperature(); 
 
             Serial.print("Temperature (C): ");
             Serial.println(Temp);

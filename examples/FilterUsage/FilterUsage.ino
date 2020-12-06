@@ -25,7 +25,9 @@
  
 #define RX_PIN 10 
 #define TX_PIN 11 
-#define BAUDRATE 9600                       // Native to the sensor (do not change)
+#define BAUDRATE 9600                       
+
+#define MODE 1                              // <---------------- Set to 0 change to switch code for each mode 
 
 MHZ19 myMHZ19;
 SoftwareSerial mySerial(RX_PIN, TX_PIN);    // Uno example
@@ -37,14 +39,13 @@ void setup()
     Serial.begin(9600);  
    
     mySerial.begin(BAUDRATE);                                   // Uno Example: Begin Stream with MHZ19 baudrate
-
-    myMHZ19.begin(mySerial);                                    // *Important, Pass your Stream reference here  
+    myMHZ19.begin(mySerial);                                    // Pass Serial reference  
     
-    /* Enable filter "mode 1" */
-    myMHZ19.setFilter(true, true);                              // ** Comment out to enable "mode 2" **
-    //myMHZ19.setFilter(true, false);                           // ** Uncomment to enable "mode 2".**
-
-    myMHZ19.autoCalibration(true);                              // Turn auto calibration ON
+#if MODE
+    myMHZ19.setFilter(true, true);                           
+#else
+    myMHZ19.setFilter(true, false);  
+#endif
 }
 
 void loop()
@@ -55,10 +56,12 @@ void loop()
         Serial.println("------------------");
 
         // get sensor readings as signed integer        
-        int CO2Unlimited = myMHZ19.getCO2(true, true);
-
+        int CO2Unlimited = myMHZ19.getCO2(true);
+        
+#if MODE
+        
         // ######### Mode 1 ############# //
-// /*
+
         Serial.print("CO2: ");
         Serial.print(CO2Unlimited);
         Serial.println(" PPM");
@@ -71,9 +74,9 @@ void loop()
         {
             /* ignore data code */
         }
- // */   
+#else  
         // ######### Mode 2 ############# //         
-/*
+
         // get library error code returned getCO2 function
         byte thisCode = myMHZ19.errorCode;
         
@@ -101,7 +104,7 @@ void loop()
             Serial.print(CO2Unlimited);
             Serial.println(" PPM");
         }
-*/
+#endif
         getDataTimer = millis();   // Update interval
     }
 }

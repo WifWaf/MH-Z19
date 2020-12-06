@@ -8,7 +8,6 @@
 
 MHZ19 myMHZ19;
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                  // Uno example
-//HardwareSerial mySerial(1);                             // ESP32 Example
 
 unsigned long getDataTimer = 0;
 
@@ -16,10 +15,7 @@ void setup()
 {
     Serial.begin(9600);  
    
-    mySerial.begin(BAUDRATE);                               // Uno example: Begin Stream with MHZ19 baudrate
-
-  //mySerial.begin(BAUDRATE, SERIAL_8N1, RX_PIN, TX_PIN);   // ESP32 Example
-
+    mySerial.begin(BAUDRATE);               //  Uno example: Begin Stream with MHZ19 baudrate
     myMHZ19.begin(mySerial);                // *Important, Pass your Stream reference here
 
     myMHZ19.autoCalibration(false);         // Turn auto calibration OFF

@@ -1,12 +1,4 @@
-/* -------------------------------------------------
-  Author: Jonathan Dempsey JDWifWaf@gmail.com
-  
-  Version: 1.5.2
-
-  License: LGPLv3
-
-  Library supporting MHZ19 sensors
------------------------------------------------------ */
+/*   Version: 1.5.3  |  License: LGPLv3  |  Author: JDWifWaf@gmail.com   */
 
 #ifndef MHZ19_H
 #define MHZ19_H
@@ -64,7 +56,7 @@ class MHZ19
 	void setRange(int range = 2000);
 
 	/* Sets Span to desired value below 10,000*/
-	void setSpan(int span = 2000);
+	void zeroSpan(int span = 2000);
 
     /* Sets "filter mode" to ON or OFF & mode type (see example) */
 	void setFilter(bool isON = true, bool isCleared = true);
@@ -116,7 +108,7 @@ class MHZ19
 	void autoCalibration(bool isON = true, byte ABCPeriod = 24);
 
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
-	void calibrateZero(int rangeCal = 0);
+	void calibrate();
 
 	/* requests a reset */
 	void recoveryReset();
