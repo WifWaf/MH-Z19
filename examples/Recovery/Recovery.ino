@@ -1,14 +1,13 @@
-/*  
-   Only use this as a final resort! 
+/*  Only use this as a final resort! 
 
    The example sets span without a reference and hence can reduce accuracy.
    Additionaly, it uses a rest command not fully tested.
 
    This sequence goes through a reset sequence and will attempt
-   to reset the device if there is an issue. 
-   
-   This is repeated untill a rational result is given. 
-*/
+   to reset the device if there is an issue. This is repeated untill a rational
+   result is given. */
+
+#define FORCE_SPAN 0                                       // < --- only set to 1 if the script fails
 
 #include <Arduino.h>
 #include "MHZ19.h"
@@ -30,9 +29,9 @@ void setup()
 {
     Serial.begin(9600);
 
-    mySerial.begin(BAUDRATE);                                // Uno example: Begin Stream with MHZ19 baudrate
+    Serial1.begin(BAUDRATE);                                // Uno example: Begin Stream with MHZ19 baudrate
 
-    myMHZ19.begin(mySerial);                                 // *Imporant, Pass your Stream reference
+    myMHZ19.begin(Serial1);                                 // *Imporant, Pass your Stream reference
 
     setRange(2000);                                          // Set Range 2000
 
@@ -41,10 +40,12 @@ void setup()
      else
         printErrorCode();
 
+#if FORCE_SPAN
     if (myMHZ19.errorCode == RESULT_OK)
-        myMHZ19.zeroSpan(2000);                              // Set Span 2000
+        myMHZ19.zeroSpan(2000);                               // Set Span 2000
     else
         printErrorCode();
+#endif 
 
     if (myMHZ19.errorCode == RESULT_OK)
         myMHZ19.autoCalibration(false);                       // Turn auto calibration OFF
@@ -109,7 +110,7 @@ void loop()
             Serial.println(CO2);
 
             int8_t Temp;                                 // Buffer for temperature
-            Temp = myMHZ19.getTemperature(false); // Request Temperature (as Celsius), new request = false;
+            Temp = myMHZ19.getTemperature(); // Request Temperature (as Celsius), new request = false;
 
             Serial.print("Temperature (C): ");
             Serial.println(Temp);

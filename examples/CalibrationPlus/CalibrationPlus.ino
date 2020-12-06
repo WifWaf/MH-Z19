@@ -1,19 +1,21 @@
 /* 
+                  # THIS SKETCH IS NOT NEEDED WITH AUTOCALIBRATION #
+                  
     Please don't run this unless you are aware of the function Range and Span carry out. 
     I would recommend avoiding this unless you have to.
     
     Very rough explanation below.
-    
+
     Range:
     The range of which you intend to measure. I.e 0  - 2000 ppm, 0 - 4000 ppm.
     If you intend to increase it, be aware the sensor accuracy drops the wider the range.
     
     Changing this, usually requires changing Span which is not recommended.
-    
+
     Span (Zero):
     The difference between the low and high range. In this case, that's 0 (we don't set this)
     and Range. So, it works out to be the same as the range.
-    
+
     There is a BIG difference however - Span is a zero command, meaning it needs a reference
     CO2 value like calibration(), which matches the span.
     

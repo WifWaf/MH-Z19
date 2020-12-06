@@ -1,21 +1,23 @@
 /* 
+                   # THIS SKETCH IS NOT NEEDED WITH AUTOCALIBRATION #
+                   
     Unlike typical sensors, calibration() refers to the zero point where CO2 is 400ppm.
     This 400ppm comes from the average atmospheric value of 400ppm (or atleast was).
-    
+
     Depending on the sensor model, the harcoded value can usually be found by 
     calling getBackgroundCO2();
-    
+
     So if you intend to manually calibrate your sensor, it's usually best to do so at 
     night and outside after 20 minutes of run time.
     
     Instead if you're using autocalibration, then the sensor takes the lowest value observed 
     in the last 24 hours and adjusts it's self accordingly over a few weeks.
-    
+
     HOW TO USE:
-    
+
     ----- Hardware Method  -----
-    By pulling the zero HD low (0V) for 7 Secs as per the datasheet. 
-      
+    By pulling the zero HD low (0V) for 7 Secs as per the datasheet.   
+
     ----- Software Method -----
     Run this sketch, disconnect MHZ19 from device after sketch ends (20+ minutes) and upload new
     code to avoid recalibration.
@@ -23,6 +25,7 @@
     ----- Auto calibration ----
     As mentioned above if this is set to true, the sensor will adjust it's self over a few weeks 
     according to the lowest observed CO2 values each day. *You don't need to run this sketch!
+     
 */
 
 #include <Arduino.h>
