@@ -110,6 +110,9 @@ class MHZ19
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
 	void calibrate();
 
+	/*  Calibrate Backwards compatability */
+	void inline calibrateZero(){ calibrate(); };
+
 	/* requests a reset */
 	void recoveryReset();
 
@@ -199,5 +202,7 @@ class MHZ19
 
 	/* converts bytes to integers according to *256 and + value */
 	unsigned int makeInt(byte high, byte low);
+
+	void cleanUp(uint8_t cnt);
 };
 #endif
