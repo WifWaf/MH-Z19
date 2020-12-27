@@ -105,6 +105,9 @@ class MHZ19
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
 	void calibrate();
 
+	/*  Calibrate Backwards compatability */
+	void inline calibrateZero(){ calibrate(); };
+	
 	/* requests a reset */
 	void recoveryReset();
 
@@ -156,6 +159,8 @@ class MHZ19
 
 	/* Cheks whether time elapse for next ABC OFF cycle has occured */
 	void ABCCheck();
+
+	void cleanUp(uint8_t cnt);
 
 	int filter(bool isunLimited, unsigned int CO2);
 

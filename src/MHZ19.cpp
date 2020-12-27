@@ -528,19 +528,11 @@ byte MHZ19::read(byte inBytes[], byte comm)
             Serial.println("!Error: Timed out waiting for response");
             #endif  
 
-            this->errorCode = RESULT_TIMEOUT;
-            
+            this->errorCode = RESULT_TIMEOUT;   
+                     
             /* clear incomplete 9 byte values, limit is finite */
-            inBytes[1] = mySerial->available();
-            for(uint8_t x = 0; x < inBytes[1]; x++)
-            {
-                inBytes[0] = mySerial->read();
-                #if defined (ESP32) && (MHZ19_ERRORS) 
-                ESP_LOGW(TAG_MHZ19, "Clearing Byte: %d", inBytes[0]);  
-                #elif MHZ19_ERRORS
-                Serial.print("!Warning: Clearing Byte: "); Serial.println(inBytes[0]);
-                #endif     
-            }
+            cleanUp(mySerial->available());
+
             //return error condition
             return RESULT_TIMEOUT;
         }
@@ -560,7 +552,11 @@ byte MHZ19::read(byte inBytes[], byte comm)
 
     /* construct error code */
     if (inBytes[0] != this->mem.block.out[0] || inBytes[1] != this->mem.block.out[2])
+    {
+       /* clear rx buffer for deysnc correction */
+        cleanUp(mySerial->available());
         this->errorCode = RESULT_MATCH;
+    }
 
     /* if error has been assigned */
     if (this->errorCode == RESULT_NULL)
@@ -658,6 +654,20 @@ void MHZ19::ABCCheck()
 		/* construct command to skip next ABC cycle */
 		provisioning(MHZ19_COM_ABC, MHZ19_ABC_PERIOD_OFF);
 	}
+}
+
+void MHZ19::cleanUp(uint8_t cnt)
+{
+    uint8_t eject = 0;
+    for(uint8_t x = 0; x < cnt; x++)
+    {
+        eject = mySerial->read();
+        #if defined (ESP32) && (MHZ19_ERRORS) 
+        ESP_LOGW(TAG_MHZ19, "Clearing Byte: %d", eject);  
+        #elif MHZ19_ERRORS
+        Serial.print("!Warning: Clearing Byte: "); Serial.println(eject);
+        #endif     
+    }
 }
 
 void MHZ19::makeByte(int inInt, byte high, byte low)
