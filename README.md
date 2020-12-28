@@ -13,7 +13,7 @@ See examples for the recovery code. *Note, Only use if your sensor is not recove
 * Communication error checking
 * Examples
 
->*[My original notes (somewhat ravings) are here](https://myopenacuk-my.sharepoint.com/:x:/g/personal/jsd328_my_open_ac_uk/Ebyx4qxCBHxIk_bOBOtLkM4B40Dt9TZFd3CdI7Pv3NssMw?e=8Lr8bZ)*
+>*[My original notes (somewhat ravings) are here](https://docs.google.com/spreadsheets/d/1hSbtUwD5b78hpo37Z1yIxQ3oiaQXUNfCuivmhBwS0-E/edit?usp=sharing)*
 
 ### Commands
 ---
