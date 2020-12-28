@@ -2,7 +2,7 @@
 
 >  ### A Quick Note on Fake MH-Z19's
 >  **A fake version is said to be in circulation which differs in hardware, and at a minimum, ppm stability.**
->  If you suspect your sensor is fake or want to be sure, then check with the [video here by Hix Field](https://www.youtube.com/watch?v=5_QQe75-SZI&feature=youtu.be) and [revspace's article](https://revspace.nl/MH-Z19B#Fake_MH-Z19B_.28black_PCB.29) for more information.
+>  If you suspect your sensor is fake or want to be sure, then check with the [video here by Hix Field](https://www.youtube.com/watch?v=5_QQe75-SZI&feature=youtu.be) and [Revspace's article](https://revspace.nl/MH-Z19B#Fake_MH-Z19B_.28black_PCB.29) for more information.
 
 # MH-Z19 & MH-Z19B
 An Arduino library for the MH-Z19X CO2 sensor, which unlocks commands while supporting both software/hardware serial.
