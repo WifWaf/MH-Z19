@@ -710,17 +710,17 @@ void MHZ19::printstream(byte inBytes[MHZ19_DATA_LEN], bool isSent, byte pserrorC
 byte MHZ19::getCRC(byte inBytes[])
 {
     /* as shown in datasheet */
-    byte x = 0, CRC = 0;
+    byte x = 0, crc = 0;
 
     for (x = 1; x < 8; x++)
     {
-        CRC += inBytes[x];
+        crc += inBytes[x];
     }
 
-    CRC = 255 - CRC;
-    CRC++;
+    crc = 255 - crc;
+    crc++;
 
-    return CRC;
+    return crc;
 }
 
 void MHZ19::ABCCheck()
