@@ -54,9 +54,9 @@ void setup()
     Serial.print("ABC Status: "); myMHZ19.getABC() ? Serial.println("ON") :  Serial.println("OFF");  // now print it's status
     
     Serial.println("Waiting 20 minutes to stabalise...");
-   /* if you don't need to wait (it's already been this amount of time), remove the next 2 lines */
-    timeElapse = 12e5;                    //  20 minutes in milliseconds
-    while(millis() < timeElapse) {};      //  wait this duration
+   /* if you don't need to wait (it's already been this amount of time), remove the 2 lines */
+    timeElapse = 12e5;   //  20 minutes in milliseconds
+    delay(timeElapse);    //  wait this duration
 
     Serial.println("Calibrating..");
     myMHZ19.calibrate();    // Take a reading which be used as the zero point for 400 ppm 
