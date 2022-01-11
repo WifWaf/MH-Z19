@@ -40,7 +40,7 @@ class MHZ19
   public:
 	/*###########################-Variables-##########################*/
 
-	/* Holds last recieved errorcode from recieveResponse() */
+	/* Holds last received errorcode from recieveResponse() */
 	byte errorCode;
 
 	/* for keeping track of the ABC run interval */

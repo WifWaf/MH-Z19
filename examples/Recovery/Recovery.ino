@@ -137,5 +137,5 @@ void setRange(int range)
 void printErrorCode()
 {
     Serial.println("Communication error. Error Code: ");  // *Print error code using the library variable
-    Serial.println(myMHZ19.errorCode);                    //  holds the last recieved code
+    Serial.println(myMHZ19.errorCode);                    //  holds the last received code
 }  

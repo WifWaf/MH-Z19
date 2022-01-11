@@ -654,7 +654,7 @@ void MHZ19::printstream(byte inBytes[MHZ19_DATA_LEN], bool isSent, byte pserrorC
 {
     if (pserrorCode != RESULT_OK && isSent == false)
     {
-        Serial.print("Recieved >> ");
+        Serial.print("Received >> ");
         if (this->storage.settings._isDec)
         {
             Serial.print("DEC: ");
@@ -681,7 +681,7 @@ void MHZ19::printstream(byte inBytes[MHZ19_DATA_LEN], bool isSent, byte pserrorC
 
     else
     {
-        isSent ? Serial.print("Sent << ") : Serial.print("Recieved >> ");
+        isSent ? Serial.print("Sent << ") : Serial.print("Received >> ");
 
         if (this->storage.settings._isDec)
         {

@@ -9,8 +9,8 @@
 	RESULT_NULL = 0,             // This should not occur, and suggests a library logic error
 	RESULT_OK = 1,               // Communication was sucessfull
 	RESULT_TIMEOUT = 2,          // Timed out waiting for a response
-	RESULT_MATCH = 3,            // Recieved data does not match the usual syntax expected
-	RESULT_CRC = 4,              // Recieved data does not match the CRC given
+	RESULT_MATCH = 3,            // Received data does not match the usual syntax expected
+	RESULT_CRC = 4,              // Received data does not match the CRC given
     RESULT_FILTER = 5,           // Filter was triggered (see FilterUsage example)
 	RESULT_FAILED = 6            // Not currently used
 */
@@ -50,7 +50,7 @@ void loop()
 
         if(myMHZ19.errorCode == RESULT_OK)              // RESULT_OK is an alis for 1. Either can be used to confirm the response was OK.
         {
-            Serial.print("CO2 Value successfully Recieved: ");
+            Serial.print("CO2 Value successfully Received: ");
             Serial.println(CO2);
             Serial.print("Response Code: ");
             Serial.println(myMHZ19.errorCode);          // Get the Error Code value

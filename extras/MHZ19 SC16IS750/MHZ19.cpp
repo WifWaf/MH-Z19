@@ -701,29 +701,29 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
     if (pserrorCode != RESULT_OK && isSent == false)
     {
         if (this->storage.settings._isDec)
-            ESP_LOGE(TAG_MHZ19, "Recieved >> %d %d %d %d %d %d %d %d %d ERROR Code: %d",
+            ESP_LOGE(TAG_MHZ19, "Received >> %d %d %d %d %d %d %d %d %d ERROR Code: %d",
                      inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8],
                      pserrorCode);
         else
-            ESP_LOGE(TAG_MHZ19, "Recieved >> %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x ERROR Code: %d",
+            ESP_LOGE(TAG_MHZ19, "Received >> %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x ERROR Code: %d",
                      inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8],
                      pserrorCode);
     }
     else
     {
         if (this->storage.settings._isDec)
-            ESP_LOGD(TAG_MHZ19, "%s %d %d %d %d %d %d %d %d %d PASS", isSent ? "Sent << " : "Recieved >> ",
+            ESP_LOGD(TAG_MHZ19, "%s %d %d %d %d %d %d %d %d %d PASS", isSent ? "Sent << " : "Received >> ",
                      inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8]);
         else
 
-            ESP_LOGD(TAG_MHZ19, "%s %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x PASS", isSent ? "Sent << " : "Recieved >> ",
+            ESP_LOGD(TAG_MHZ19, "%s %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x %#03x PASS", isSent ? "Sent << " : "Received >> ",
                      inBytes[0], inBytes[1], inBytes[2], inBytes[3], inBytes[4], inBytes[5], inBytes[6], inBytes[7], inBytes[8]);
     }
      
     #elif MHZ19_ERRORS
     if (pserrorCode != RESULT_OK && isSent == false)
     {
-        Serial.print("Recieved >> ");
+        Serial.print("Received >> ");
 
         if (this->storage.settings._isDec)
         {
@@ -753,7 +753,7 @@ void MHZ19::printstream(byte inBytes[9], bool isSent, byte pserrorCode)
 
     else
     {
-        isSent ? Serial.print("Sent << ") : Serial.print("Recieved >> ");
+        isSent ? Serial.print("Sent << ") : Serial.print("Received >> ");
 
         if (this->storage.settings._isDec)
         {
