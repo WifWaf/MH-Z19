@@ -1,4 +1,4 @@
-﻿![Version](https://img.shields.io/badge/Version-v2.0.0-red.svg)
+﻿![Version](https://img.shields.io/badge/Version-v2.0.1-red.svg)
 
 >  ### A Quick Note on Fake MH-Z19's
 >  **A fake version is said to be in circulation which differs in hardware, and at a minimum, ppm stability.**
