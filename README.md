@@ -28,12 +28,11 @@ See examples for the recovery code. *Note, Only use if your sensor is not recove
 | CO2 as Raw                          | Temperature as Whole Integer  | 
 | Custom Range / Span                 | Request CO2 Calibration       | 
 | Reset Sensor                        | ABC On / Off                  |
-| Get Temperature Adjustment          | Retrieve Accuracy             |
-| Get Firmware Version                |                               |     
+| Get Firmware Version                |    Retrieve Accuracy          |     
 | Get Background CO2 Value            |                               |
 | Get Range Value                     |                               |
 | Get Last Response                   |                               |
-| ^Get ABC Status                     |
+| ^Get ABC Status                     |                               |
 >^* submitted by SFeli
 
 ### "Usage"
