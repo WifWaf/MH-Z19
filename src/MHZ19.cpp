@@ -39,6 +39,13 @@ void MHZ19::begin(Stream &serial)
         Serial.println("!ERROR: Initial communication errorCode recieved");
         #endif 
     }
+
+    /* What FW version is the sensor running? */
+    char myVersion[4];          
+    this->getVersion(myVersion);
+    
+    /* Store the major version number (assumed to be less than 10) */
+    this->storage.settings.fw_ver = myVersion[1];
 }
 
 /*########################-Set Functions-##########################*/
@@ -197,34 +204,9 @@ float MHZ19::getTransmittance(bool force)
         return 0;
 }
 
-float MHZ19::getTemperature(bool isFloat, bool force)
+float MHZ19::getTemperature(bool force)
 {
-    if(isFloat)
-    {
-        static byte baseTemp = 0;
-        static bool isSet = false;
-
-        if(!isSet)
-        {
-            provisioning(CO2LIM);
-            byte buff = (this->storage.responses.CO2LIM[4] - TEMP_ADJUST);
-
-            baseTemp = buff - (byte)getTemperatureOffset(true);
-            isSet = true;
-        }
-        
-        if(force)
-            provisioning(CO2UNLIM);
-
-        if(this->errorCode == RESULT_OK || force == false)
-        {
-           float buff = baseTemp;
-           buff += getTemperatureOffset(false);
-           return buff;
-        }
-    }
-    
-    else if(!isFloat)
+    if(this->storage.settings.fw_ver < 5)
     {
         if (force == true)
             provisioning(CO2LIM);
@@ -232,26 +214,17 @@ float MHZ19::getTemperature(bool isFloat, bool force)
         if (this->errorCode == RESULT_OK || force == false)
             return (this->storage.responses.CO2LIM[4] - TEMP_ADJUST);
     }
-    
-    return -273.15;    
-}
- 
-float MHZ19::getTemperatureOffset(bool force)
-{
-     if (force == true)
-        provisioning(CO2UNLIM);
+    else
+    {    
+        if (force == true)
+            provisioning(CO2UNLIM);
 
-    if (this->errorCode == RESULT_OK || force == false)
-    {
-        /* Value appears to be for CO2 offset (useful for deriving CO2 from raw?) */
-        /* Adjustments and calculations are based on observations of temp behavour */
-        float calc = (((this->storage.responses.CO2UNLIM[2] - 8) * 1500) + ((this->storage.responses.CO2UNLIM[3] * 100) * 1 / 17));
-        calc /= 100;
-        return calc;
+        if (this->errorCode == RESULT_OK)
+            return (float)(((int)this->storage.responses.CO2UNLIM[2] << 8) | this->storage.responses.CO2UNLIM[3]) / 100;
     }
 
-    return -273.15;
-} 
+    return -273.15;    
+}
 
 int MHZ19::getRange()
 {
