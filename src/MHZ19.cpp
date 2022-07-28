@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------
-    Contact: JDWifWaf@gmail.com | Version: 2.0.0 | License: LGPLv3
+    Contact: JDWifWaf@gmail.com | Version: 2.0.1 | License: LGPLv3
    ---------------------------------------------------------------- */
 
 #include "MHZ19.h"
@@ -64,6 +64,13 @@ void MHZ19::begin(Stream &serial)
         Serial.println("!ERROR: Initial communication errorCode recieved");
         #endif 
     }
+    
+    /* What FW version is the sensor running? */
+    char myVersion[4];          
+    this->getVersion(myVersion);
+    
+    /* Store the major version number (assumed to be less than 10) */
+    this->mem.fw_mv = myVersion[1];
 }
 
 /*########################-Set Functions-##########################*/
@@ -258,55 +265,24 @@ float MHZ19::getTransmittance()
         return 0;
 }
 
-float MHZ19::getTemperature(bool isFloat)
+float MHZ19::getTemperature()
 {
-    provisioning(MHZ19_COM_CO2_LIM);
-
-    if(isFloat)
+    if(this->mem.fw_mv < 5)
     {
-        static byte baseTemp = 0;    // Temp has a common base value when determing float   
-        static byte offSet = 0;      // Offset is the value to be removed form the final value
-        static bool isSet = false;   // Flag for if the base temp was recorded in previous iterations
+       provisioning(MHZ19_COM_CO2_LIM);
 
-        if(!isSet)
-        {
-            baseTemp = (this->mem.block.in[4] - MHZ19_LIB_TEMP_ADJUST);
-            offSet -= (byte)getTemperatureOffset();
-            isSet = true;
-        }   
-
-        if(this->errorCode == RESULT_OK)
-        {
-           float buff = baseTemp;
-           buff += offSet;
-           return buff;
-        }
-    }
-    
-    else if(!isFloat)
-    {
         if (this->errorCode == RESULT_OK)
             return (this->mem.block.in[4] - MHZ19_LIB_TEMP_ADJUST);
     }
-    
-    return -273.15;    
-}
- 
-float MHZ19::getTemperatureOffset()
-{
-    provisioning(MHZ19_COM_CO2_UNLIM);
-
-    if (this->errorCode == RESULT_OK)
+    else
     {
-        /* Value appears to be for CO2 offset (useful for deriving CO2 from raw?) */
-        /* Adjustments and calculations are based on observations of temp behavour */
-        float calc = (((this->mem.block.in[2] - 8) * 1500) + ((this->mem.block.in[3] * 100) * 1 / 17));
-        calc /= 100;
-        return calc;
-    }
+        provisioning(MHZ19_COM_CO2_UNLIM);
 
-    return -273.15;
-} 
+        if (this->errorCode == RESULT_OK)
+            return (float)(((int)this->mem.block.in[2] << 8) | this->mem.block.in[3]) / 100;
+    }
+        return -273;
+}
 
 int MHZ19::getRange()
 {

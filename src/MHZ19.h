@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------
-    Contact: JDWifWaf@gmail.com | Version: 2.0.0 | License: LGPLv3
+    Contact: JDWifWaf@gmail.com | Version: 2.0.1 | License: LGPLv3
    ---------------------------------------------------------------- */
 
 #ifndef MHZ19_H
@@ -74,7 +74,7 @@ class MHZ19
 	float getTransmittance();
 
 	/*  returns temperature using command 134 or 135 if isFloat = true */
-	float getTemperature(bool isFloat = false);
+	float getTemperature();
 	
 	/* reads range using command 153 */
 	int getRange();
@@ -139,6 +139,8 @@ class MHZ19
 	struct mempool
 	{
 		uint8_t cfg = 0X00 | 0x04;        // Default settings have MHZ19_FILTER_CLR_EN
+		uint8_t fw_mv = 0;
+
 		struct data
 		{
 			byte in[MHZ19_LIB_DATA_LEN];		    // Holds generic in data
@@ -156,9 +158,6 @@ class MHZ19
 
 	/* generates a checksum for sending and verifying incoming data */
 	byte getCRC(byte inBytes[]);
-
-	/* Returns what appears to be an offset */ 		//<----- knowledgable people might have success using against the raw value
-	float getTemperatureOffset();
 
 	/* Sends commands to the sensor */
 	void write(byte toSend[]);
