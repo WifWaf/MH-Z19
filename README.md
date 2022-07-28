@@ -1,4 +1,4 @@
-﻿![Version](https://img.shields.io/badge/Version-v1.5.3-green.svg)
+﻿![Version](https://img.shields.io/badge/Version-v1.5.4-green.svg)
 
 >  ### A Quick Note on Fake MH-Z19's
 >  **A fake version is said to be in circulation which differs in hardware, and at a minimum, ppm stability.**
@@ -28,8 +28,7 @@ See examples for the recovery code. *Note, Only use if your sensor is not recove
 | CO2 as Raw                          | Temperature as Whole Integer  | 
 | Custom Range / Span                 | Request CO2 Calibration       | 
 | Reset Sensor                        | ABC On / Off                  |
-| Get Temperature Adjustment          | Retrieve Accuracy             |
-| Get Firmware Version                |                               |     
+| Get Firmware Version                | Retrieve Accuracy             |     
 | Get Background CO2 Value            |                               |
 | Get Range Value                     |                               |
 | Get Last Response                   |                               |
