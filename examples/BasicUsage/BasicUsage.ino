@@ -27,19 +27,22 @@ void loop()
     {
         int CO2; 
 
-        /* note: getCO2() default is command "CO2 Unlimited". This returns the correct CO2 reading even 
-        if below background CO2 levels or above range (useful to validate sensor). You can use the 
-        usual documented command with getCO2(false) */
+        /* 
+            getCO2() returns an uncapped CO2 value. This means the value can go outside the expected range (400 - X), but
+            allows some verification over the sensors self-calibration. The capped value can instead be used by passing 
+            false; getCO2(false)
+        */
 
-        CO2 = myMHZ19.getCO2();                             // Request CO2 (as ppm)
+        CO2 = myMHZ19.getCO2();                             // CO2 (as ppm)
         
         Serial.print("CO2 (ppm): ");                      
-        Serial.println(CO2);                                
+        Serial.println(CO2);                                                         
 
-        int8_t Temp;
-        Temp = myMHZ19.getTemperature();                     // Request Temperature (as Celsius)
-        Serial.print("Temperature (C): ");                  
-        Serial.println(Temp);                               
+        float Temp;    
+        Temp = myMHZ19.getTemperature();                    // internal temperature (Celsius) of the sensor
+
+        Serial.print("Temperature (C): ");
+        Serial.println(Temp);
 
         getDataTimer = millis();
     }
