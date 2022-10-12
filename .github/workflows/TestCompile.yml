@@ -56,4 +56,5 @@ jobs:
           arduino-board-fqbn: ${{ matrix.arduino-boards-fqbn }}
           platform-url: ${{ matrix.platform-url }}
           sketch-names-find-start: examples/
+          build-properties: '{ "All": "-Wno-error=unused-variable" }' # https://github.com/espressif/arduino-esp32/issues/7024
 

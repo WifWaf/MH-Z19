@@ -12,6 +12,7 @@ HardwareSerial mySerial(2);
 #include <SoftwareSerial.h>                               //  Remove if using HardwareSerial or non-uno compatible device
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // (Uno example) create device to MH-Z19 serial
 #endif
+
 unsigned long getDataTimer = 0;
 
 void setup()
