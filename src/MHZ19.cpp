@@ -4,46 +4,48 @@
 
 /*#########################-Commands-##############################*/
 
+// see https://revspace.nl/MH-Z19B
+// Must have the same order as the COMMAND_TYPE enum
 byte Commands[14] = {
-    120,	// 0 Recovery Reset        Changes operation mode and performs MCU reset
-    121,	// 1 ABC Mode ON/OFF       Turns ABC logic on or off (b[3] == 0xA0 - on, 0x00 - off)
-    125,	// 2 Get ABC logic status  (1 - enabled, 0 - disabled)	
-    132,	// 3 Raw CO2
-    133,	// 4 Temp float, CO2 Unlimited
-    134,	// 5 Temp integer, CO2 limited
-    135,	// 6 Zero Calibration
-    136,	// 7 Span Calibration
-    153,	// 8 Range
-    155,	// 9 Get Range
-    156,	// 10 Get Background CO2
-    160,	// 11 Get Firmware Version
-    162,	// 12 Get Last Response
-    163		// 13 Get Temp Calibration
+    0x78,	// 0 Recovery Reset        Changes operation mode and performs MCU reset
+    0x79,	// 1 ABC (Automatic Baseline Correction) Mode ON/OFF - Turns ABC logic on or off (b[3] == 0xA0 - on, 0x00 - off)
+    0x7D,	// 2 Get ABC logic status  (1 - enabled, 0 - disabled)
+    0x84,	// 3 Raw CO2
+    0x85,	// 4 Temperature float, CO2 Unlimited
+    0x86,	// 5 Temperature integer, CO2 limited / clipped
+    0x87,	// 6 Zero Calibration
+    0x88,	// 7 Span Calibration
+    0x99,	// 8 Range
+    0x9B,	// 9 Get Range
+    0x9C,	// 10 Get Background CO2
+    0xA0,	// 11 Get Firmware Version
+    0xA2,	// 12 Get Last Response
+    0xA3	// 13 Get Temperature Calibration
 };
 
 /*#####################-Initiation Functions-#####################*/
 
-void MHZ19::begin(Stream &serial) 
-{  
-    mySerial = &serial;    
-    
+void MHZ19::begin(Stream &serial)
+{
+    mySerial = &serial;
+
     /* establish connection */
     verify();
 
     /* check if successful */
-    if (this->errorCode != RESULT_OK) 
+    if (this->errorCode != RESULT_OK)
     {
         #if defined (ESP32) && (MHZ19_ERRORS)
         ESP_LOGE(TAG_MHZ19, "Initial communication errorCode recieved");
         #elif MHZ19_ERRORS
         Serial.println("!ERROR: Initial communication errorCode recieved");
-        #endif 
+        #endif
     }
 
     /* What FW version is the sensor running? */
-    char myVersion[4];          
+    char myVersion[4];
     this->getVersion(myVersion);
-    
+
     /* Store the major version number (assumed to be less than 10) */
     this->storage.settings.fw_ver = myVersion[1];
 }
@@ -52,13 +54,13 @@ void MHZ19::begin(Stream &serial)
 
 void MHZ19::setRange(int range)
 {
-    if (range > 65000)
+    if (range > __INT_MAX__)
     {
         #if defined (ESP32) && (MHZ19_ERRORS)
-        ESP_LOGE(TAG_MHZ19, "Invalid Range value (0 - 65000)");
+        ESP_LOGE(TAG_MHZ19, "Invalid Range value (0 - 32000)");
         #elif MHZ19_ERRORS
-        Serial.println("!ERROR: Invalid Range value (0 - 65000)");
-        #endif 
+        Serial.println("!ERROR: Invalid Range value (0 - 32000)");
+        #endif
 
         return;
     }
@@ -72,14 +74,14 @@ void MHZ19::zeroSpan(int span)
     if (span > 10000)
     {
         #if defined (ESP32) && (MHZ19_ERRORS)
-        ESP_LOGE(TAG_MHZ19, "Invalid Span value (0 - 10000)");   
+        ESP_LOGE(TAG_MHZ19, "Invalid Span value (0 - 10000)");
         #elif MHZ19_ERRORS
         Serial.println("!ERROR: Invalid Span value (0 - 10000)");
-        #endif 
+        #endif
     }
     else
         provisioning(SPANCAL, span);
- 
+
     return;
 }
 
@@ -107,7 +109,7 @@ int MHZ19::getCO2(bool isunLimited, bool force)
         {
             unsigned int validRead = 0;
 
-            if(isunLimited)              
+            if(isunLimited)
                 validRead = makeInt(this->storage.responses.CO2UNLIM[4], this->storage.responses.CO2UNLIM[5]);
             else
                 validRead = makeInt(this->storage.responses.CO2LIM[2], this->storage.responses.CO2LIM[3]);
@@ -116,7 +118,7 @@ int MHZ19::getCO2(bool isunLimited, bool force)
                 validRead = 32767;  // Set to maximum to stop negative values being return due to overflow
 
             else
-                 return validRead;   
+                 return validRead;
         }
         else
         {
@@ -124,26 +126,26 @@ int MHZ19::getCO2(bool isunLimited, bool force)
             unsigned int checkVal[2];
             bool trigFilter = false;
 
-            // Filter was must call the opposest unlimited/limited command to work
-            if(!isunLimited)                    
+            // Filter must call the opposest unlimited/limited command to work
+            if(!isunLimited)
                 provisioning(CO2UNLIM);
             else
                 provisioning(CO2LIM);
-            
+
             checkVal[0] = makeInt(this->storage.responses.CO2UNLIM[4], this->storage.responses.CO2UNLIM[5]);
             checkVal[1] = makeInt(this->storage.responses.CO2LIM[2], this->storage.responses.CO2LIM[3]);
 
             // Limited CO2 stays at 410ppm during reset, so comparing unlimited which instead
-            // shows an abormal value, reset duration can be found. Limited CO2 ppm returns to "normal"
+            // shows an abnormal value, reset duration can be found. Limited CO2 ppm returns to "normal"
             // after reset.
 
             if(this->storage.settings.filterCleared)
             {
                 if(checkVal[0] > 32767 || checkVal[1] > 32767 || (((checkVal[0] - checkVal[1]) >= 10) && checkVal[1] == 410))
-                {      
+                {
                     this->errorCode = RESULT_FILTER;
                     return 0;
-                }     
+                }
             }
             else
             {
@@ -161,17 +163,17 @@ int MHZ19::getCO2(bool isunLimited, bool force)
                     trigFilter = true;
 
                 if(trigFilter)
-                {              
+                {
                     this->errorCode = RESULT_FILTER;
                 }
             }
 
-            if(isunLimited)       
+            if(isunLimited)
                 return checkVal[0];
             else
-                return checkVal[1]; 
-            /* FILTER END ----------------------------------------------------------- */             
-        }              
+                return checkVal[1];
+            /* FILTER END ----------------------------------------------------------- */
+        }
     }
     return 0;
 }
@@ -215,7 +217,7 @@ float MHZ19::getTemperature(bool force)
             return (this->storage.responses.CO2LIM[4] - TEMP_ADJUST);
     }
     else
-    {    
+    {
         if (force == true)
             provisioning(CO2UNLIM);
 
@@ -223,7 +225,7 @@ float MHZ19::getTemperature(bool force)
             return (float)(((int)this->storage.responses.CO2UNLIM[2] << 8) | this->storage.responses.CO2UNLIM[3]) / 100;
     }
 
-    return -273.15;    
+    return -273.15;
 }
 
 int MHZ19::getRange()
@@ -288,8 +290,8 @@ byte MHZ19::getTempAdjustment()
 {
     provisioning(GETEMPCAL);
 
-    /* 40 is returned here, however this library uses TEMP_ADJUST 
-     when using temperature function as it appears inaccurate, 
+    /* 40 is returned here, however this library uses TEMP_ADJUST
+     when using temperature function as it appears inaccurate,
     */
 
     if (this->errorCode == RESULT_OK)
@@ -338,10 +340,10 @@ void MHZ19::verify()
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
            #if defined (ESP32) && (MHZ19_ERRORS)
-            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor.");   
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(1) to sensor.");
             #elif MHZ19_ERRORS
             Serial.println("!ERROR: Failed to verify connection(1) to sensor.");
-            #endif   
+            #endif
 
             return;
         }
@@ -350,8 +352,8 @@ void MHZ19::verify()
     /* construct & write last response command (162) */
     constructCommand(GETLASTRESP);
     write(this->storage.constructedCommand);
-    
-    /* update timeStamp  for next comms iteration */ 
+
+    /* update timeStamp  for next comms iteration */
     timeStamp = millis();
 
     while (read(this->storage.responses.STAT, GETLASTRESP) != RESULT_OK)
@@ -359,14 +361,14 @@ void MHZ19::verify()
         if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
             #if defined (ESP32) && (MHZ19_ERRORS)
-            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor.");   
+            ESP_LOGE(TAG_MHZ19, "Failed to verify connection(2) to sensor.");
             #elif MHZ19_ERRORS
             Serial.println("!ERROR: Failed to verify connection(2) to sensor.");
             #endif
-            
+
             return;
         }
-    }      
+    }
 
     /* compare CO2 & temp bytes, command(133), against last response bytes, command (162)*/
     for (byte i = 2; i < 6; i++)
@@ -374,7 +376,7 @@ void MHZ19::verify()
         if (this->storage.responses.CO2UNLIM[i] != this->storage.responses.STAT[i])
         {
             #if defined (ESP32) && (MHZ19_ERRORS)
-            ESP_LOGE(TAG_MHZ19, "Last response is not as expected, verification failed.");   
+            ESP_LOGE(TAG_MHZ19, "Last response is not as expected, verification failed.");
             #elif MHZ19_ERRORS
             Serial.println("!ERROR: Last response is not as expected, verification failed.");
             #endif
@@ -399,16 +401,16 @@ void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
 
             /* Convert to bytes */
              ABCPeriod *= 6.7;
-        }      
+        }
         /* If no period was defined (for safety, even though default argument is given)*/
         else
             ABCPeriod = MHZ19_ABC_PERIOD_DEF;    // Default bytes
-    } 
+    }
     /* If ABC is OFF */
-    else  
-        ABCPeriod = MHZ19_ABC_PERIOD_OFF;                      // Set command byte to Zero to match command format.     
+    else
+        ABCPeriod = MHZ19_ABC_PERIOD_OFF;                      // Set command byte to Zero to match command format.
 
-    /* Update storage */  
+    /* Update storage */
     this->storage.settings.ABCRepeat = !isON;  // Set to opposite, as repeat command is sent only when ABC is OFF.
 
     provisioning(ABC, ABCPeriod);
@@ -525,10 +527,10 @@ void MHZ19::write(byte toSend[])
         printstream(toSend, true, this->errorCode);
 
     /* transfer to buffer */
-    mySerial->write(toSend, MHZ19_DATA_LEN); 
- 
+    mySerial->write(toSend, MHZ19_DATA_LEN);
+
     /* send */
-    mySerial->flush(); 
+    mySerial->flush();
 }
 
 byte MHZ19::read(byte inBytes[MHZ19_DATA_LEN], Command_Type commandnumber)
@@ -545,16 +547,16 @@ byte MHZ19::read(byte inBytes[MHZ19_DATA_LEN], Command_Type commandnumber)
     /* wait until we have exactly the 9 bytes reply (certain controllers call read() too fast) */
     while (mySerial->available() < MHZ19_DATA_LEN)
     {
-        if (millis() - timeStamp >= TIMEOUT_PERIOD) 
+        if (millis() - timeStamp >= TIMEOUT_PERIOD)
         {
-            #if defined (ESP32) && (MHZ19_ERRORS) 
-            ESP_LOGW(TAG_MHZ19, "Timed out waiting for response");    
+            #if defined (ESP32) && (MHZ19_ERRORS)
+            ESP_LOGW(TAG_MHZ19, "Timed out waiting for response");
             #elif MHZ19_ERRORS
             Serial.println("!Error: Timed out waiting for response");
-            #endif  
+            #endif
 
             this->errorCode = RESULT_TIMEOUT;
-            
+
             /* clear incomplete 9 byte values, limit is finite */
             cleanUp(mySerial->available());
 
@@ -562,8 +564,8 @@ byte MHZ19::read(byte inBytes[MHZ19_DATA_LEN], Command_Type commandnumber)
             return RESULT_TIMEOUT;
         }
     }
-    
-    /* response recieved, read buffer */
+
+    /* response received, read buffer */
     mySerial->readBytes(inBytes, MHZ19_DATA_LEN);
 
     if (this->errorCode == RESULT_TIMEOUT)
@@ -571,14 +573,14 @@ byte MHZ19::read(byte inBytes[MHZ19_DATA_LEN], Command_Type commandnumber)
 
     byte crc = getCRC(inBytes);
 
-    /* CRC error will not overide match error */
+    /* CRC error will not override match error */
     if (inBytes[8] != crc)
         this->errorCode = RESULT_CRC;
 
     /* construct error code */
     if (inBytes[0] != this->storage.constructedCommand[0] || inBytes[1] != this->storage.constructedCommand[2])
     {
-       /* clear rx buffer for deysnc correction */
+       /* clear rx buffer for desync correction */
         cleanUp(mySerial->available());
         this->errorCode = RESULT_MATCH;
     }
@@ -600,11 +602,11 @@ void MHZ19::cleanUp(uint8_t cnt)
     for(uint8_t x = 0; x < cnt; x++)
     {
         eject = mySerial->read();
-        #if defined (ESP32) && (MHZ19_ERRORS) 
-        ESP_LOGW(TAG_MHZ19, "Clearing Byte: %d", eject);  
+        #if defined (ESP32) && (MHZ19_ERRORS)
+        ESP_LOGW(TAG_MHZ19, "Clearing Byte: %d", eject);
         #elif MHZ19_ERRORS
         Serial.print("!Warning: Clearing Byte: "); Serial.println(eject);
-        #endif     
+        #endif
     }
 }
 
@@ -703,7 +705,7 @@ void MHZ19::ABCCheck()
 	{
 		/* update timer inerval */
 		ABCRepeatTimer = millis();
-		
+
 		/* construct command to skip next ABC cycle */
 		provisioning(ABC, MHZ19_ABC_PERIOD_OFF);
 	}
@@ -720,6 +722,6 @@ void MHZ19::makeByte(int inInt, byte *high, byte *low)
 unsigned int MHZ19::makeInt(byte high, byte low)
 {
     unsigned int calc = ((unsigned int)high * 256) + (unsigned int)low;
- 
+
     return calc;
 }

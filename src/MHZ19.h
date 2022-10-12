@@ -11,7 +11,7 @@
 #endif
 
 #define MHZ19_ERRORS 1			// Set to 0 to disable error prints
-#define TEMP_ADJUST 40			// This is the value used to adjust the temeperature.
+#define TEMP_ADJUST 40			// This is the value used to adjust the temperature.
 #define TIMEOUT_PERIOD 500		// Time out period for response (ms)
 #define DEFAULT_RANGE 2000		// For range function (sensor works best in this range)
 #define MHZ19_DATA_LEN 9		// Data protocol length
@@ -20,7 +20,7 @@
 #define MHZ19_ABC_PERIOD_OFF    0x00
 #define MHZ19_ABC_PERIOD_DEF    0xA0
 
-/* enum alias for error code defintions */
+/* enum alias for error code definitions */
 enum ERRORCODE
 {
 	RESULT_NULL = 0,
@@ -36,7 +36,7 @@ class MHZ19
   public:
 	/*###########################-Variables-##########################*/
 
-	/* Holds last received errorcode from recieveResponse() */
+	/* Holds last received error code from recieveResponse() */
 	byte errorCode;
 
 	/* for keeping track of the ABC run interval */
@@ -45,7 +45,7 @@ class MHZ19
 	/*#####################-Initiation Functions-#####################*/
 
 	/* essential begin */
-	void begin(Stream &stream);    
+	void begin(Stream &stream);
 
 	/*########################-Set Functions-##########################*/
 
@@ -57,7 +57,7 @@ class MHZ19
 
     /* Sets "filter mode" to ON or OFF & mode type (see example) */
 	void setFilter(bool isON = true, bool isCleared = true);
- 
+
 	/*########################-Get Functions-##########################*/
 
 	/* request CO2 values, 2 types of CO2 can be returned, isLimted = true (command 134) and is Limited = false (command 133) */
@@ -71,7 +71,7 @@ class MHZ19
 
 	/*  returns temperature using command 133 or 134 */
 	float getTemperature(bool force = true);
-	
+
 	/* reads range using command 153 */
 	int getRange();
 
@@ -81,7 +81,7 @@ class MHZ19
 	/* Returns accuracy value if available */
 	byte getAccuracy(bool force = true);
 
-	/* not yet implamented */
+	/* not yet implemented */
 	byte getPWMStatus();
 
 	/* returns MH-Z19 version using command 160, to the entered array */
@@ -107,7 +107,7 @@ class MHZ19
 	/* Calibrates "Zero" (Note: Zero refers to 400ppm for this sensor)*/
 	void calibrate();
 
-	/*  Calibrate Backwards compatability */
+	/*  Calibrate Backwards compatibility */
 	void inline calibrateZero(){ calibrate(); };
 
 	/* requests a reset */
@@ -118,19 +118,19 @@ class MHZ19
 
   private:
 	/*###########################-Variables-##########################*/
-     
+
 	/* pointer for Stream class to accept reference for hardware and software ports */
-  Stream* mySerial; 
+  Stream* mySerial;
 
   /* alias for command types */
 	typedef enum COMMAND_TYPE
 	{
 		RECOVER = 0,			// 0 Recovery Reset
-		ABC = 1,				// 1 ABC Mode ON/OFF
+		ABC = 1,				// 1 ABC (Automatic Baseline Correction) Mode ON/OFF
 		GETABC = 2,				// 2 Get ABC - Status 0x79
 		RAWCO2 = 3,				// 3 Raw CO2
-		CO2UNLIM = 4,			// 4 Temp for unsigned, CO2 Unlimited
-		CO2LIM = 5,				// 5 Temp for signed, CO2 limited
+		CO2UNLIM = 4,			// 4 Temperature for unsigned, CO2 Unlimited
+		CO2LIM = 5,				// 5 Temperature for signed, CO2 limited
 		ZEROCAL = 6,			// 6 Zero Calibration
 		SPANCAL = 7,			// 7 Span Calibration
 		RANGE = 8,				// 8 Range
@@ -138,7 +138,7 @@ class MHZ19
 		GETCALPPM = 10,			// 10 Get Background CO2
 		GETFIRMWARE = 11,		// 11 Get Firmware Version
 		GETLASTRESP = 12,		// 12 Get Last Response
-		GETEMPCAL = 13			// 13 Get Temp Calibration
+		GETEMPCAL = 13			// 13 Get Temperature Calibration
 	} Command_Type;
 
 	/* Memory Pool */
@@ -146,11 +146,11 @@ class MHZ19
 	{
 		struct config
 		{
-			bool ABCRepeat = false;					// A flag which represents whether autocalibration ABC period was checked
+			bool ABCRepeat = false;					// A flag which represents whether auto calibration ABC period was checked
 			bool filterMode = false;				// Flag set by setFilter() to signify is "filter mode" was made active
-			bool filterCleared = true;				// Additional flag set by setFiler() to store which mode was selected			
+			bool filterCleared = true;				// Additional flag set by setFilter() to store which mode was selected
 			bool printcomm = false;					// Communication print options
-			bool _isDec = true;						// Holds preferance for communication printing
+			bool _isDec = true;						// Holds preference for communication printing
 			uint8_t fw_ver = 0;                     // holds the major version of the firmware
 		} settings;
 
@@ -166,9 +166,9 @@ class MHZ19
 
 	} storage;
 
-	/*######################-Inernal Functions-########################*/
+	/*######################-Internal Functions-########################*/
 
-	/* Coordinates  sending, constructing and recieving commands */
+	/* Coordinates  sending, constructing and receiving commands */
 	void provisioning(Command_Type commandtype, int inData = 0);
 
 	/* Constructs commands using command array and entered values */
@@ -183,13 +183,13 @@ class MHZ19
 	/* Call retrieveData to retrieve values from the sensor and check return code */
 	byte read(byte inBytes[9], Command_Type commandnumber);
 
-	/* Assigns response to the correct communcation arrays */
+	/* Assigns response to the correct communication arrays */
 	void handleResponse(Command_Type commandtype);
 
-	/* prints sending / recieving messages if enabled */
+	/* prints sending / receiving messages if enabled */
 	void printstream(byte inbytes[9], bool isSent, byte pserrorCode);
 
-	/* Cheks whether time elapse for next ABC OFF cycle has occured */
+	/* Checks whether time elapse for next ABC OFF cycle has occurred */
 	void ABCCheck();
 
 	/* converts integers to bytes according to /256 and %256 */
