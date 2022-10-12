@@ -1,13 +1,17 @@
 #include <Arduino.h>
 #include "MHZ19.h"
-#include <SoftwareSerial.h>                                // Remove if using HardwareSerial
 
 #define RX_PIN 10                                          // Rx pin which the MHZ19 Tx pin is attached to
 #define TX_PIN 11                                          // Tx pin which the MHZ19 Rx pin is attached to
 #define BAUDRATE 9600                                      // Device to MH-Z19 Serial baudrate (should not be changed)
 
 MHZ19 myMHZ19;                                             // Constructor for library
+#if defined(ESP32)
+HardwareSerial mySerial(2);
+#else
+#include <SoftwareSerial.h>                               //  Remove if using HardwareSerial or non-uno compatible device
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // (Uno example) create device to MH-Z19 serial
+#endif
 
 unsigned long getDataTimer = 0;
 

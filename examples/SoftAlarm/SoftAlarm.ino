@@ -1,14 +1,17 @@
 #include <Arduino.h>
 #include "MHZ19.h"
-#include <SoftwareSerial.h>                               //  Remove if using HardwareSerial or non-uno compatible device
 
 #define RX_PIN 10
 #define TX_PIN 11
 #define BAUDRATE 9600                                     // Native to the sensor (do not change)
 
 MHZ19 myMHZ19;
-SoftwareSerial mySerial(RX_PIN, TX_PIN);                  // Uno example
-
+#if defined(ESP32)
+HardwareSerial mySerial(2);
+#else
+#include <SoftwareSerial.h>                               //  Remove if using HardwareSerial or non-uno compatible device
+SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // (Uno example) create device to MH-Z19 serial
+#endif
 unsigned long getDataTimer = 0;
 
 void setup()

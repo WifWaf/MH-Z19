@@ -29,9 +29,8 @@ void setup()
 {
     Serial.begin(9600);
 
-    Serial1.begin(BAUDRATE);                                // Uno example: Begin Stream with MHZ19 baudrate
-
-    myMHZ19.begin(Serial1);                                 // *Important, Pass your Stream reference
+    Serial.begin(BAUDRATE);                                // Uno example: Begin Stream with MHZ19 baudrate
+    myMHZ19.begin(mySerial);                                 // *Important, Pass your Stream reference
 
     setRange(2000);                                          // Set Range 2000
 
