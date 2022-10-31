@@ -54,12 +54,12 @@ void MHZ19::begin(Stream &serial)
 
 void MHZ19::setRange(int range)
 {
-    if (range > __INT_MAX__)
+    if(range < 500 || range > 20000)
     {
         #if defined (ESP32) && (MHZ19_ERRORS)
-        ESP_LOGE(TAG_MHZ19, "Invalid Range value (0 - 32000)");
+        ESP_LOGE(TAG_MHZ19, "Invalid Range value (500 - 20000)");
         #elif MHZ19_ERRORS
-        Serial.println("!ERROR: Invalid Range value (0 - 32000)");
+        Serial.println("!ERROR: Invalid Range value (500 - 20000)");
         #endif
 
         return;
