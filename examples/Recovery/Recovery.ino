@@ -18,22 +18,22 @@
 
 MHZ19 myMHZ19;
 #if defined(ESP32)
-HardwareSerial mySerial(2);
+HardwareSerial mySerial(2);                                // On ESP32 we do not require the SoftwareSerial library, since we have 2 USARTS available
 #else
-#include <SoftwareSerial.h>                               //  Remove if using HardwareSerial or non-uno compatible device
+#include <SoftwareSerial.h>                                //  Remove if using HardwareSerial or non-uno compatible device
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // (Uno example) create device to MH-Z19 serial
 #endif
 
 unsigned long getDataTimer = 0;
 
-void setRange(int range);                                  // Decelerations for non-IDE platform
+void setRange(int range);                                  // Declarations for non-IDE platform
 void printErrorCode();
 
 void setup()
 {
     Serial.begin(9600);
 
-    Serial.begin(BAUDRATE);                                // Uno example: Begin Stream with MHZ19 baudrate
+    Serial.begin(BAUDRATE);                                  // Uno example: Begin Stream with MHZ19 baudrate
     myMHZ19.begin(mySerial);                                 // *Important, Pass your Stream reference
 
     setRange(2000);                                          // Set Range 2000

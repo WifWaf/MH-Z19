@@ -48,9 +48,9 @@
 
 MHZ19 myMHZ19;
 #if defined(ESP32)
-HardwareSerial mySerial(2);
+HardwareSerial mySerial(2);                                // On ESP32 we do not require the SoftwareSerial library, since we have 2 USARTS available
 #else
-#include <SoftwareSerial.h>                               //  Remove if using HardwareSerial or non-uno compatible device
+#include <SoftwareSerial.h>                                //  Remove if using HardwareSerial or non-uno compatible device
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // (Uno example) create device to MH-Z19 serial
 #endif
 

@@ -3,13 +3,13 @@
 
 #define RX_PIN 10
 #define TX_PIN 11
-#define BAUDRATE 9600                                     // Native to the sensor (do not change)
+#define BAUDRATE 9600                                      // Native to the sensor (do not change)
 
 MHZ19 myMHZ19;
 #if defined(ESP32)
-HardwareSerial mySerial(2);
+HardwareSerial mySerial(2);                                // On ESP32 we do not require the SoftwareSerial library, since we have 2 USARTS available
 #else
-#include <SoftwareSerial.h>                               //  Remove if using HardwareSerial or non-uno compatible device
+#include <SoftwareSerial.h>                                //  Remove if using HardwareSerial or non-uno compatible device
 SoftwareSerial mySerial(RX_PIN, TX_PIN);                   // (Uno example) create device to MH-Z19 serial
 #endif
 
