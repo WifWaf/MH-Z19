@@ -25,12 +25,12 @@ byte Commands[14] = {
 
 /*#####################-Initiation Functions-#####################*/
 
-void MHZ19::begin(Stream &serial)
+int MHZ19::begin(Stream &serial)
 {
     mySerial = &serial;
 
     /* establish connection */
-    verify();
+    if (verify()) return 1;
 
     /* check if successful */
     if (this->errorCode != RESULT_OK)
@@ -48,6 +48,7 @@ void MHZ19::begin(Stream &serial)
 
     /* Store the major version number (assumed to be less than 10) */
     this->storage.settings.fw_ver = myVersion[1];
+    return 0;
 }
 
 /*########################-Set Functions-##########################*/
@@ -326,7 +327,7 @@ bool MHZ19::getABC()
 
 /*######################-Utility Functions-########################*/
 
-void MHZ19::verify()
+int MHZ19::verify()
 {
     unsigned long timeStamp = millis();
 
@@ -345,7 +346,7 @@ void MHZ19::verify()
             Serial.println("!ERROR: Failed to verify connection(1) to sensor.");
             #endif
 
-            return;
+            return 1;
         }
     }
 
@@ -366,7 +367,7 @@ void MHZ19::verify()
             Serial.println("!ERROR: Failed to verify connection(2) to sensor.");
             #endif
 
-            return;
+            return 1;
         }
     }
 
@@ -381,10 +382,10 @@ void MHZ19::verify()
             Serial.println("!ERROR: Last response is not as expected, verification failed.");
             #endif
 
-            return;
+            return 1;
         }
     }
-    return;
+    return 0;
 }
 
 void MHZ19::autoCalibration(bool isON, byte ABCPeriod)
