@@ -44,8 +44,8 @@ class MHZ19
 
 	/*#####################-Initiation Functions-#####################*/
 
-	/* essential begin */
-	void begin(Stream &stream);
+	/* essential begin, return 0 on success, non-zero on error */
+	int begin(Stream &stream);
 
 	/*########################-Set Functions-##########################*/
 
@@ -98,8 +98,10 @@ class MHZ19
 
 	/*######################-Utility Functions-########################*/
 
-	/* ensure communication is working (included in begin())*/
-	void verify();
+	/* ensure communication is working (included in begin())
+	 * return 0 on success, non-zero on error
+	 */
+	int verify();
 
 	/* disables calibration or sets ABCPeriod */
 	void autoCalibration(bool isON = true, byte ABCPeriod = 24);
